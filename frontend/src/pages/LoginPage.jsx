@@ -49,7 +49,6 @@ export default function LoginPage() {
     setTimeout(() => {
       console.log("Login attempt with:", { email, password, rememberMe })
       setIsSubmitting(false)
-      // Here you would typically redirect on successful login
     }, 1500)
   }
 

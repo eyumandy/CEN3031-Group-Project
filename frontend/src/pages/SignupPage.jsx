@@ -72,7 +72,6 @@ export default function SignupPage() {
     setTimeout(() => {
       console.log("Signup attempt with:", { name, email, password, agreeTerms })
       setIsSubmitting(false)
-      // Here you would typically redirect on successful signup
     }, 1500)
   }
 
