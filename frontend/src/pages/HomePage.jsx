@@ -34,10 +34,9 @@ export default function HomePage() {
   useEffect(() => {
     const handleScroll = () => {
       const scrollPosition = window.scrollY
-      const headerHeight = 80 // Approximate header height
+      const headerHeight = 80 
 
       if (featuresSectionRef.current) {
-        // Add more buffer (100px) for smoother transition
         const featuresPosition = featuresSectionRef.current.offsetTop - headerHeight - 100
 
         if (scrollPosition >= featuresPosition) {
@@ -55,7 +54,7 @@ export default function HomePage() {
     return () => window.removeEventListener("scroll", handleScroll)
   }, [featuresSectionRef]) // Add dependency
 
-  // Array of phrases to rotate through - all ending with a period
+  // Array of phrases to rotate through
   const phrases = [
     "Build lasting habits with Momentum's minimalist approach to personal growth.",
     "Transform your daily routines with focused tracking and accountability.",
@@ -217,7 +216,6 @@ export default function HomePage() {
       return null
     }
 
-    // Rest of the canvas implementation
     let animationFrameId
 
     function createInitialParticles(scale) {
@@ -419,7 +417,7 @@ export default function HomePage() {
             onClick={(e) => {
               e.preventDefault()
               if (featuresSectionRef.current) {
-                const headerHeight = 80 // Approximate header height
+                const headerHeight = 80
                 const elementPosition = featuresSectionRef.current.offsetTop
 
                 window.scrollTo({
@@ -460,7 +458,6 @@ export default function HomePage() {
       {/* Vignette overlay */}
       <div className="absolute inset-0 pointer-events-none z-10 bg-gradient-radial from-transparent via-transparent to-black/50" />
 
-      {/* Title above logo with static text */}
       {/* Title above logo with static text */}
       <motion.div
         className="absolute z-20 text-center"

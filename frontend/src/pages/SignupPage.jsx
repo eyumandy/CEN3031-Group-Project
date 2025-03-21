@@ -65,7 +65,7 @@ export default function SignupPage() {
     if (!agreeTerms) {
       return;
     }
-  
+
     setIsSubmitting(true);
   
     try {
