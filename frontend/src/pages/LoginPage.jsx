@@ -41,16 +41,38 @@ export default function LoginPage() {
    * Handle form submission
    * @param {Event} e - Form submission event
    */
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    setIsSubmitting(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Login attempt with:", { email, password, rememberMe })
-      setIsSubmitting(false)
-      // Here you would typically redirect on successful login
-    }, 1500)
+    setIsSubmitting(true);
+  
+    try {
+      const response = await fetch("http://127.0.0.1:5000/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert("Login Successful");
+        // Redirect to login page (update path as needed)
+        window.location.href = "/";
+      } else {
+        alert(data.error || "Login failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      alert("An error occurred. Please try again later.");
+    }
+  
+    setIsSubmitting(false);
   }
 
   return (

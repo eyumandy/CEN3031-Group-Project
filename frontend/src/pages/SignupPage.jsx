@@ -53,28 +53,50 @@ export default function SignupPage() {
    * Handle form submission
    * @param {Event} e - Form submission event
    */
-  const handleSubmit = (e) => {
-    e.preventDefault()
-
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
     // Validate form
     if (password !== confirmPassword) {
-      setPasswordError("Passwords do not match")
-      return
+      setPasswordError("Passwords do not match");
+      return;
     }
-
+  
     if (!agreeTerms) {
-      return
+      return;
     }
-
-    setIsSubmitting(true)
-
-    // Simulate API call
-    setTimeout(() => {
-      console.log("Signup attempt with:", { name, email, password, agreeTerms })
-      setIsSubmitting(false)
-      // Here you would typically redirect on successful signup
-    }, 1500)
-  }
+  
+    setIsSubmitting(true);
+  
+    try {
+      const response = await fetch("http://127.0.0.1:5000/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email,
+          password,
+          name,
+        }),
+      });
+  
+      const data = await response.json();
+  
+      if (response.ok) {
+        alert("Registration successful! Please log in.");
+        // Redirect to login page (update path as needed)
+        window.location.href = "/login";
+      } else {
+        alert(data.error || "Registration failed. Please try again.");
+      }
+    } catch (error) {
+      console.error("Signup error:", error);
+      alert("An error occurred. Please try again later.");
+    }
+  
+    setIsSubmitting(false);
+  };
 
   return (
     <div className="relative w-full h-screen flex flex-col items-center justify-center bg-black overflow-hidden">
