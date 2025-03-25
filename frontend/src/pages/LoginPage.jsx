@@ -1,11 +1,12 @@
 /**
  * 
- * @description Login page component for the Momentum web application
- * @version 1.0
- * @dependencies 
- *  - react
+ * Login page component for the Momentum web application
+ * Handles authentication and redirects to dashboard on success
+ * 
+ * @dependencies
+ *  - react 
  *  - framer-motion
- *  - next/link
+ *  - next/navigation
  */
 
 "use client"
@@ -13,21 +14,18 @@
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { ThreeCanvas } from "../components"
 import { MOMENTUM_LOGO_PATH } from "../constants/momentum-logo-path"
 
-/**
- * Login page component for the Momentum application
- * Renders a form with email, password inputs and authentication functionality
- * 
- * @returns {JSX.Element} Login page component
- */
 export default function LoginPage() {
   const [isLoaded, setIsLoaded] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [rememberMe, setRememberMe] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+  const router = useRouter()
 
   // Set component as loaded after a brief delay
   useEffect(() => {
@@ -43,7 +41,7 @@ export default function LoginPage() {
    */
   const handleSubmit = async (e) => {
     e.preventDefault()
-
+    setErrorMessage("")
     setIsSubmitting(true);
   
     try {
@@ -61,15 +59,24 @@ export default function LoginPage() {
       const data = await response.json();
   
       if (response.ok) {
-        alert("Login Successful");
-        // Redirect to login page (update path as needed)
-        window.location.href = "/";
+        // Store token in localStorage
+        if (data.access_token) {
+          localStorage.setItem("authToken", data.access_token);
+          
+          // If remember me is checked, we could set a longer expiry
+          if (rememberMe) {
+            localStorage.setItem("rememberUser", "true");
+          }
+        }
+        
+        // Redirect to dashboard
+        router.push("/dashboard");
       } else {
-        alert(data.error || "Login failed. Please try again.");
+        setErrorMessage(data.error || "Invalid email or password. Please try again.");
       }
     } catch (error) {
       console.error("Login error:", error);
-      alert("An error occurred. Please try again later.");
+      setErrorMessage("An error occurred. Please try again later.");
     }
   
     setIsSubmitting(false);
@@ -126,6 +133,12 @@ export default function LoginPage() {
               Welcome Back
             </span>
           </h2>
+
+          {errorMessage && (
+            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-md text-red-400 text-sm font-mono">
+              {errorMessage}
+            </div>
+          )}
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
