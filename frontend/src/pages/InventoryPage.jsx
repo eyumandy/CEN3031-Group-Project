@@ -1,4 +1,5 @@
 /**
+ * InventoryPage.jsx
  * 
  * Inventory page component for Momentum
  * Displays user's owned items and allows them to use/activate them
@@ -7,6 +8,7 @@
  *  - next/navigation
  *  - react hooks
  *  - framer-motion
+ *  - ThemeContext
  */
 
 "use client"
@@ -18,6 +20,7 @@ import { useRouter } from "next/navigation"
 import { MOMENTUM_LOGO_PATH } from "../constants/momentum-logo-path"
 import NotificationDropdown from "../components/NotificationDropdown"
 import ProfileDropdown from "../components/ProfileDropdown"
+import { useTheme } from '../contexts/ThemeContext';
 
 export default function InventoryPage() {
   const router = useRouter()
@@ -27,8 +30,10 @@ export default function InventoryPage() {
   const [activeCategory, setActiveCategory] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
   const [isUsingItem, setIsUsingItem] = useState(false)
-  const [currentTheme, setCurrentTheme] = useState("basic") // Default theme
-
+  
+  // Get theme context
+  const themeContext = useTheme();
+  
   // Check for authentication token on component mount
   useEffect(() => {
     const authToken = localStorage.getItem("authToken")
@@ -59,8 +64,9 @@ export default function InventoryPage() {
             item.category === "themes" && item.isActive
           )
           
-          if (activeTheme) {
-            setCurrentTheme(activeTheme.themeId)
+          // Apply active theme if found and theme context is available
+          if (activeTheme && themeContext) {
+            themeContext.applyTheme(activeTheme.themeId);
           }
         } else {
           console.error("Failed to fetch inventory")
@@ -74,7 +80,7 @@ export default function InventoryPage() {
     }
     
     fetchInventoryData()
-  }, [router])
+  }, [router, themeContext]) // Add themeContext as dependency
 
   // Handle using/activating items
   const handleUseItem = async (item) => {
@@ -85,6 +91,23 @@ export default function InventoryPage() {
       if (!authToken) {
         router.push("/login")
         return
+      }
+      
+      if (item.category === "themes") {
+        // Apply theme visually immediately
+        let success = false;
+        
+        if (themeContext) {
+          success = themeContext.applyTheme(item.themeId);
+        } else {
+          console.log("Theme context not available yet, would apply theme:", item.themeId);
+        }
+        
+        if (!success && themeContext) {
+          alert(`Failed to apply theme: ${item.name}`);
+          setIsUsingItem(false);
+          return;
+        }
       }
       
       const response = await fetch("http://127.0.0.1:5000/inventory/use", {
@@ -102,9 +125,6 @@ export default function InventoryPage() {
         const data = await response.json()
         
         if (item.category === "themes") {
-          // Update current theme
-          setCurrentTheme(item.themeId)
-          
           // Update inventory items to reflect the active theme
           setInventoryItems(prevItems => 
             prevItems.map(i => ({

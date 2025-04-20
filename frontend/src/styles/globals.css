@@ -6,6 +6,16 @@
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 0, 0, 0;
   --background-end-rgb: 5, 10, 21;
+  
+  /* Theme variables */
+  --theme-primary: #00DCFF;
+  --theme-secondary: #3B82F6;
+  --theme-accent: #9333EA;
+  --theme-background: #000000;
+  --theme-cardBg: rgba(0, 0, 0, 0.4);
+  --theme-borderColor: rgba(255, 255, 255, 0.1);
+  --theme-textColor: #FFFFFF;
+  --theme-textMuted: #9CA3AF;
 }
 
 body {
@@ -40,4 +50,36 @@ body {
 /* Text shadow effect for cyan text */
 .text-shadow-cyan {
   text-shadow: 0 0 15px rgba(0, 220, 255, 0.5), 0 0 30px rgba(0, 220, 255, 0.3);
+}
+
+/* Themed components */
+.themed-button {
+  background-image: linear-gradient(to right, var(--theme-primary), var(--theme-secondary));
+  color: var(--theme-textColor);
+}
+
+.themed-card {
+  background-color: var(--theme-cardBg);
+  border-color: var(--theme-borderColor);
+}
+
+.bg-gradient-primary {
+  background-image: linear-gradient(to right, var(--theme-primary), var(--theme-secondary));
+}
+
+.text-themed-primary {
+  color: var(--theme-primary);
+}
+
+.text-themed-muted {
+  color: var(--theme-textMuted);
+}
+
+.border-themed {
+  border-color: var(--theme-borderColor);
+}
+
+.shadow-themed {
+  box-shadow: 0 4px 6px -1px rgba(var(--theme-primary-rgb), 0.1), 
+              0 2px 4px -1px rgba(var(--theme-primary-rgb), 0.06);
 }
