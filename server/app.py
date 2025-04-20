@@ -490,6 +490,23 @@ def get_user_stats():
         'activeBackground': active_background.get('id') if active_background else None
     }), 200
 
+@app.route('/user/profile', methods=['GET'])
+@jwt_required()
+def get_profile():
+    # grab the email you encoded in the token
+    current_email = get_jwt_identity()
+
+    # fetch only name and email (suppress _id)
+    user = users_collection.find_one(
+        {'email': current_email},
+        {'_id': False, 'email': True, 'name': True}
+    )
+
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+
+    return jsonify(user), 200
+
 if __name__ == '__main__':
     print("MongoDB Database Names:", client.list_database_names())
     app.run(debug=True)
