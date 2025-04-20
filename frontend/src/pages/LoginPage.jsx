@@ -67,6 +67,11 @@ export default function LoginPage() {
           if (rememberMe) {
             localStorage.setItem("rememberUser", "true");
           }
+
+          if (data.user) {
+            localStorage.setItem("userEmail", data.user.email);
+            localStorage.setItem("userName", data.user.name || "");
+          }
         }
         
         // Redirect to dashboard

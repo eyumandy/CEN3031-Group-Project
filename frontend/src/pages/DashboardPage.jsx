@@ -1,8 +1,9 @@
 /**
- * Dashboard page component for Momentum
+ * /pages/DashboardPage.jsx
  * 
- * Displays user's habits, stats, and activity after successful login
- * Provides navigation to other app areas like achievements, inventory, and shop
+ * Dashboard page component for Momentum
+ * Displays user's habits and stats after authentication
+ * Fetches data from the API and updates in real-time
  * 
  * @dependencies
  *  - next/navigation
@@ -15,10 +16,10 @@
 import { useState, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { MOMENTUM_LOGO_PATH } from "../constants/momentum-logo-path"
 import NotificationDropdown from "../components/NotificationDropdown"
 import ProfileDropdown from "../components/ProfileDropdown"
-import { useRouter } from "next/navigation"
 
 export default function DashboardPage() {
   const router = useRouter()
@@ -26,8 +27,19 @@ export default function DashboardPage() {
   const [habits, setHabits] = useState([])
   const [activeFilter, setActiveFilter] = useState("all")
   const [searchQuery, setSearchQuery] = useState("")
-  const [coins, setCoins] = useState(150) // Starting coins for the user
+  const [coins, setCoins] = useState(0)
   const [showCreateModal, setShowCreateModal] = useState(false)
+  const [newHabit, setNewHabit] = useState({
+    title: "",
+    description: "",
+    frequency: "daily",
+    category: "wellness",
+    timeOfDay: "any",
+    difficulty: "medium",
+    color: "#00DCFF"
+  })
+  const [isCreating, setIsCreating] = useState(false)
+  const [error, setError] = useState("")
 
   // Check for authentication token on component mount
   useEffect(() => {
@@ -39,124 +51,181 @@ export default function DashboardPage() {
       return
     }
     
-    // Fetch user data and habits if authenticated
-    // TODO: API calls to get the user's data
+    // Fetch habits and inventory data
+    const fetchUserData = async () => {
+      try {
+        // Fetch habits
+        const habitsResponse = await fetch("http://127.0.0.1:5000/habits", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${authToken}`
+          }
+        })
+        
+        if (habitsResponse.ok) {
+          const habitsData = await habitsResponse.json()
+          setHabits(habitsData.habits || [])
+        } else {
+          console.error("Failed to fetch habits")
+        }
+        
+        // Fetch inventory (for coins)
+        const inventoryResponse = await fetch("http://127.0.0.1:5000/inventory", {
+          method: "GET",
+          headers: {
+            "Authorization": `Bearer ${authToken}`
+          }
+        })
+        
+        if (inventoryResponse.ok) {
+          const inventoryData = await inventoryResponse.json()
+          setCoins(inventoryData.coins || 0)
+        } else {
+          console.error("Failed to fetch inventory")
+        }
+        
+        setIsLoaded(true)
+      } catch (error) {
+        console.error("Error fetching user data:", error)
+        setIsLoaded(true)
+      }
+    }
     
-    // Simulation until real backend implementation
-    setTimeout(() => {
-      setHabits([
-        {
-          id: "1",
-          title: "Morning Meditation",
-          description: "10 minutes of mindfulness meditation",
-          frequency: "daily",
-          streak: 5,
-          totalCompletions: 12,
-          category: "wellness",
-          createdAt: new Date("2023-03-01"),
-          completedToday: true,
-          timeOfDay: "morning",
-          color: "#00DCFF",
-          difficulty: "medium",
-          coinReward: 10,
-        },
-        {
-          id: "2",
-          title: "Read Technical Articles",
-          description: "Read at least one technical article to stay updated",
-          frequency: "daily",
-          streak: 3,
-          totalCompletions: 8,
-          category: "learning",
-          createdAt: new Date("2023-03-05"),
-          completedToday: false,
-          timeOfDay: "evening",
-          color: "#9333EA",
-          difficulty: "easy",
-          coinReward: 5,
-        },
-        {
-          id: "3",
-          title: "Weekly Review",
-          description: "Review goals and plan for the next week",
-          frequency: "weekly",
-          streak: 2,
-          totalCompletions: 6,
-          category: "productivity",
-          createdAt: new Date("2023-02-15"),
-          completedToday: false,
-          timeOfDay: "evening",
-          color: "#22C55E",
-          difficulty: "hard",
-          coinReward: 15,
-        },
-        {
-          id: "4",
-          title: "Exercise",
-          description: "30 minutes of cardio or strength training",
-          frequency: "daily",
-          streak: 0,
-          totalCompletions: 20,
-          category: "health",
-          createdAt: new Date("2023-01-10"),
-          completedToday: false,
-          timeOfDay: "afternoon",
-          color: "#F97316",
-          difficulty: "medium",
-          coinReward: 10,
-        },
-        {
-          id: "5",
-          title: "Drink Water",
-          description: "Drink at least 8 glasses of water",
-          frequency: "daily",
-          streak: 7,
-          totalCompletions: 30,
-          category: "health",
-          createdAt: new Date("2023-01-05"),
-          completedToday: true,
-          timeOfDay: "all-day",
-          color: "#3B82F6",
-          difficulty: "easy",
-          coinReward: 5,
-        },
-      ])
-      setIsLoaded(true)
-    }, 800)
+    fetchUserData()
   }, [router])
 
-  const handleToggleComplete = (id) => {
-    setHabits(
-      habits.map((habit) => {
-        if (habit.id === id) {
-          const wasCompleted = habit.completedToday
-
-          // If marking as complete, award coins
-          if (!wasCompleted) {
-            // Base reward is the habit's coinReward or default to 10
-            let reward = habit.coinReward || 10
-
-            // Bonus for streaks
-            if (habit.streak >= 5) reward += 5
-            if (habit.streak >= 10) reward += 5
-            if (habit.streak >= 30) reward += 10
-
-            // Update total coins
-            setCoins((prevCoins) => prevCoins + reward)
-          }
-
-          return {
-            ...habit,
-            completedToday: !wasCompleted,
-            streak: !wasCompleted ? habit.streak + 1 : Math.max(0, habit.streak - 1),
-            totalCompletions: !wasCompleted ? habit.totalCompletions + 1 : habit.totalCompletions,
-          }
-        }
-        return habit
-      }),
-    )
+  // Create new habit
+  const handleCreateHabit = async () => {
+    if (!newHabit.title) {
+      setError("Title is required")
+      return
+    }
+    
+    setIsCreating(true)
+    setError("")
+    
+    try {
+      const authToken = localStorage.getItem("authToken")
+      if (!authToken) return
+      
+      const response = await fetch("http://127.0.0.1:5000/habits", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${authToken}`,
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify(newHabit)
+      })
+      
+      if (response.ok) {
+        const data = await response.json()
+        
+        // Add new habit to state
+        setHabits(prevHabits => [...prevHabits, data.habit])
+        
+        // Reset form and close modal
+        setNewHabit({
+          title: "",
+          description: "",
+          frequency: "daily",
+          category: "wellness",
+          timeOfDay: "any",
+          difficulty: "medium",
+          color: "#00DCFF"
+        })
+        setShowCreateModal(false)
+      } else {
+        const errorData = await response.json()
+        setError(errorData.error || "Failed to create habit")
+      }
+    } catch (error) {
+      console.error("Error creating habit:", error)
+      setError("An error occurred. Please try again.")
+    }
+    
+    setIsCreating(false)
   }
 
+  // Handle toggling habit completion
+  const handleToggleComplete = async (id) => {
+    try {
+      const authToken = localStorage.getItem("authToken")
+      if (!authToken) return
+      
+      const habit = habits.find(h => h.id === id)
+      
+      if (habit.completedToday) {
+        // If already completed, update UI only for now (implement undo in the future)
+        setHabits(habits.map((h) => {
+          if (h.id === id) {
+            return {
+              ...h,
+              completedToday: false,
+              streak: Math.max(0, h.streak - 1),
+              totalCompletions: h.totalCompletions > 0 ? h.totalCompletions - 1 : 0,
+            }
+          }
+          return h
+        }))
+      } else {
+        // Mark as completed via API
+        const response = await fetch(`http://127.0.0.1:5000/habits/${id}/complete`, {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${authToken}`,
+            "Content-Type": "application/json"
+          }
+        })
+        
+        if (response.ok) {
+          const data = await response.json()
+          
+          // Update habits with the completed habit
+          setHabits(habits.map((h) => {
+            if (h.id === id) {
+              return data.habit
+            }
+            return h
+          }))
+          
+          // Update coins with reward
+          setCoins(data.currentCoins)
+        } else {
+          console.error("Failed to complete habit")
+        }
+      }
+    } catch (error) {
+      console.error("Error toggling habit completion:", error)
+    }
+  }
+
+  // Delete habit
+  const handleDeleteHabit = async (id) => {
+    if (!confirm("Are you sure you want to delete this habit?")) return
+    
+    try {
+      const authToken = localStorage.getItem("authToken")
+      if (!authToken) return
+      
+      const response = await fetch(`http://127.0.0.1:5000/habits/${id}`, {
+        method: "DELETE",
+        headers: {
+          "Authorization": `Bearer ${authToken}`
+        }
+      })
+      
+      if (response.ok) {
+        // Remove habit from state
+        setHabits(habits.filter(habit => habit.id !== id))
+      } else {
+        console.error("Failed to delete habit")
+      }
+    } catch (error) {
+      console.error("Error deleting habit:", error)
+    }
+  }
+
+  // Filter habits based on active filter and search query
   const filteredHabits = habits.filter((habit) => {
     const matchesFilter = activeFilter === "all" || habit.frequency === activeFilter
     const matchesSearch =
@@ -169,7 +238,7 @@ export default function DashboardPage() {
   const totalHabits = habits.length
   const completedToday = habits.filter((habit) => habit.completedToday).length
   const completionRate = totalHabits > 0 ? Math.round((completedToday / totalHabits) * 100) : 0
-  const longestStreak = Math.max(...habits.map((habit) => habit.streak), 0)
+  const longestStreak = Math.max(...habits.map((habit) => habit.streak || 0), 0)
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -187,7 +256,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="flex items-center space-x-6">
-            {/* Coin display */}
+            {/* Coin display - Now showing real data from the database */}
             <div className="hidden md:flex items-center bg-black/40 border border-yellow-500/30 rounded-full px-3 py-1">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -430,7 +499,7 @@ export default function DashboardPage() {
           </div>
         </motion.div>
 
-        {/* Habits Grid - Placeholder cards for now */}
+        {/* Habits Grid - using real data from API */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           <AnimatePresence>
             {isLoaded ? (
@@ -447,7 +516,7 @@ export default function DashboardPage() {
                       className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-6 shadow-lg relative overflow-hidden group"
                       style={{
                         borderLeftWidth: "4px",
-                        borderLeftColor: habit.color,
+                        borderLeftColor: habit.color || "#00DCFF",
                       }}
                     >
                       {/* Completion indicator */}
@@ -463,7 +532,8 @@ export default function DashboardPage() {
                         <h3 className="text-lg font-mono text-white">{habit.title}</h3>
                         <div className="relative">
                           <button
-                            className="text-gray-400 hover:text-white transition-colors duration-300 focus:outline-none"
+                            onClick={() => handleDeleteHabit(habit.id)}
+                            className="text-gray-400 hover:text-red-400 transition-colors duration-300 focus:outline-none"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -476,7 +546,7 @@ export default function DashboardPage() {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"
+                                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
                               />
                             </svg>
                           </button>
@@ -490,13 +560,13 @@ export default function DashboardPage() {
                           <span className="ml-1 capitalize">{habit.category}</span>
                         </span>
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-white/10 text-gray-300">
-                          <span className="ml-1 capitalize">{habit.timeOfDay.replace("-", " ")}</span>
+                          <span className="ml-1 capitalize">{habit.timeOfDay ? habit.timeOfDay.replace("-", " ") : "any time"}</span>
                         </span>
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-white/10 text-gray-300">
                           <span className="ml-1 capitalize">{habit.frequency}</span>
                         </span>
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-white/10 text-gray-300">
-                          <span className="ml-1">{habit.difficulty}</span>
+                          <span className="ml-1">{habit.difficulty || "medium"}</span>
                         </span>
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-yellow-500/20 text-yellow-300">
                           <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
@@ -507,7 +577,7 @@ export default function DashboardPage() {
                               clipRule="evenodd"
                             />
                           </svg>
-                          {habit.coinReward} coins
+                          {habit.coinReward || 10} coins
                         </span>
                       </div>
 
@@ -523,7 +593,7 @@ export default function DashboardPage() {
                             >
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
-                            <span className="text-sm font-mono text-gray-300">{habit.streak} streak</span>
+                            <span className="text-sm font-mono text-gray-300">{habit.streak || 0} streak</span>
                           </div>
                           <div className="h-4 w-px bg-gray-700"></div>
                           <div className="flex items-center">
@@ -541,7 +611,7 @@ export default function DashboardPage() {
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                               />
                             </svg>
-                            <span className="text-sm font-mono text-gray-300">{habit.totalCompletions} total</span>
+                            <span className="text-sm font-mono text-gray-300">{habit.totalCompletions || 0} total</span>
                           </div>
                         </div>
 
@@ -651,6 +721,173 @@ export default function DashboardPage() {
           </AnimatePresence>
         </div>
       </main>
+
+      {/* Create Habit Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.2 }}
+            className="bg-black/80 border border-white/10 rounded-lg shadow-xl max-w-md w-full"
+          >
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-mono text-white">Create New Habit</h2>
+                <button 
+                  onClick={() => setShowCreateModal(false)} 
+                  className="text-gray-400 hover:text-white transition-colors duration-300"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              {error && (
+                <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-md text-red-400 text-sm font-mono">
+                  {error}
+                </div>
+              )}
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-mono text-gray-400 mb-1">Title *</label>
+                  <input
+                    type="text"
+                    value={newHabit.title}
+                    onChange={(e) => setNewHabit({...newHabit, title: e.target.value})}
+                    className="w-full px-4 py-2 bg-black/50 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 text-white font-mono text-sm"
+                    placeholder="e.g. Morning Meditation"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-mono text-gray-400 mb-1">Description</label>
+                  <textarea
+                    value={newHabit.description}
+                    onChange={(e) => setNewHabit({...newHabit, description: e.target.value})}
+                    className="w-full px-4 py-2 bg-black/50 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 text-white font-mono text-sm h-20 resize-none"
+                    placeholder="Describe your habit..."
+                  />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-mono text-gray-400 mb-1">Frequency</label>
+                    <select
+                      value={newHabit.frequency}
+                      onChange={(e) => setNewHabit({...newHabit, frequency: e.target.value})}
+                      className="w-full px-4 py-2 bg-black/50 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 text-white font-mono text-sm"
+                    >
+                      <option value="daily">Daily</option>
+                      <option value="weekly">Weekly</option>
+                      <option value="monthly">Monthly</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-mono text-gray-400 mb-1">Category</label>
+                    <select
+                      value={newHabit.category}
+                      onChange={(e) => setNewHabit({...newHabit, category: e.target.value})}
+                      className="w-full px-4 py-2 bg-black/50 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 text-white font-mono text-sm"
+                    >
+                      <option value="wellness">Wellness</option>
+                      <option value="health">Health</option>
+                      <option value="productivity">Productivity</option>
+                      <option value="learning">Learning</option>
+                      <option value="finance">Finance</option>
+                      <option value="social">Social</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-mono text-gray-400 mb-1">Time of Day</label>
+                    <select
+                      value={newHabit.timeOfDay}
+                      onChange={(e) => setNewHabit({...newHabit, timeOfDay: e.target.value})}
+                      className="w-full px-4 py-2 bg-black/50 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 text-white font-mono text-sm"
+                    >
+                      <option value="any">Any Time</option>
+                      <option value="morning">Morning</option>
+                      <option value="afternoon">Afternoon</option>
+                      <option value="evening">Evening</option>
+                      <option value="night">Night</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-mono text-gray-400 mb-1">Difficulty</label>
+                    <select
+                      value={newHabit.difficulty}
+                      onChange={(e) => setNewHabit({...newHabit, difficulty: e.target.value})}
+                      className="w-full px-4 py-2 bg-black/50 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 text-white font-mono text-sm"
+                    >
+                      <option value="easy">Easy</option>
+                      <option value="medium">Medium</option>
+                      <option value="hard">Hard</option>
+                    </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-mono text-gray-400 mb-1">Color</label>
+                  <div className="flex space-x-2">
+                    {["#00DCFF", "#22C55E", "#F97316", "#3B82F6", "#9333EA", "#EC4899"].map((color) => (
+                      <button
+                        key={color}
+                        type="button"
+                        onClick={() => setNewHabit({...newHabit, color})}
+                        className={`w-8 h-8 rounded-full ${newHabit.color === color ? 'ring-2 ring-white' : ''}`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="pt-4 flex justify-end space-x-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowCreateModal(false)}
+                    className="px-4 py-2 bg-black/50 border border-gray-700 rounded-md text-gray-300 hover:text-white transition-colors duration-300 text-sm font-mono"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleCreateHabit}
+                    disabled={isCreating || !newHabit.title}
+                    className="px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white rounded-md transition-all duration-300 text-sm font-mono shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
+                  >
+                    {isCreating ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Creating...
+                      </>
+                    ) : (
+                      "Create Habit"
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      )}
     </div>
   )
 }
