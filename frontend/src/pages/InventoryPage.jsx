@@ -484,30 +484,7 @@ return (
             <span className="font-mono text-yellow-100 font-medium">{coins}</span>
           </div>
 
-          <nav className="hidden md:flex items-center space-x-8">
-            <Link
-              href="/dashboard"
-              className="text-sm font-medium relative text-gray-300 hover:text-white transition-colors duration-300"
-            >
-              Dashboard
-            </Link>
-            <Link
-              href="/shop"
-              className="text-sm font-medium relative text-gray-300 hover:text-white transition-colors duration-300"
-            >
-              Shop
-            </Link>
-            <Link href="/inventory" className="text-sm font-medium relative text-cyan-400">
-              Inventory
-              <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-cyan-400"></span>
-            </Link>
-            <Link
-              href="/achievements"
-              className="text-sm font-medium relative text-gray-300 hover:text-white transition-colors duration-300"
-            >
-              Achievements
-            </Link>
-          </nav>
+          
 
           <div className="flex items-center space-x-4">
             {/* Mobile coin display */}
@@ -576,9 +553,6 @@ return (
               <NotificationDropdown />
               <ProfileDropdown />
             </div>
-            <NotificationDropdown />
-            <ProfileDropdown userName="John Smith" userEmail="user@momentum.app" userInitials="JS" />
-
           </div>
         </div>
       </div>
