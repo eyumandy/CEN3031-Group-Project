@@ -15,9 +15,11 @@
 import { useState, useRef, useEffect } from "react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useRouter } from "next/navigation"
+import { useUserProfile } from "../hooks/useUserProfile.js"
 
-export default function ProfileDropdown({ userName, userEmail, userInitials }) {
+export default function ProfileDropdown() {
   const [isOpen, setIsOpen] = useState(false)
+  const { name, email, initials, loading } = useUserProfile()
   const dropdownRef = useRef(null)
   const router = useRouter()
 
@@ -52,7 +54,7 @@ export default function ProfileDropdown({ userName, userEmail, userInitials }) {
         className="h-8 w-8 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 flex items-center justify-center text-white font-medium text-sm hover:shadow-lg hover:shadow-cyan-500/30 transition-shadow duration-300"
         aria-label="Open profile menu"
       >
-        {userInitials}
+        {initials}
       </button>
 
       <AnimatePresence>
@@ -65,8 +67,8 @@ export default function ProfileDropdown({ userName, userEmail, userInitials }) {
             className="absolute right-0 mt-2 w-56 bg-black/90 backdrop-blur-md border border-white/10 rounded-md shadow-lg z-50 overflow-hidden"
           >
             <div className="p-3 border-b border-white/10">
-              <p className="text-white font-mono text-sm font-medium">{userName}</p>
-              <p className="text-gray-400 font-mono text-xs truncate">{userEmail}</p>
+              <p className="text-white font-mono text-sm font-medium">{name}</p>
+              <p className="text-gray-400 font-mono text-xs truncate">{email}</p>
             </div>
             <div className="py-1">
               <button
