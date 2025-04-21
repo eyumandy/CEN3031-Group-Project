@@ -80,36 +80,20 @@ export default function InventoryPage() {
     }
     
     fetchInventoryData()
-  }, [router, themeContext]) // Add themeContext as dependency
+  }, [router, themeContext]) 
 
   // Handle using/activating items
   const handleUseItem = async (item) => {
-    setIsUsingItem(true)
+    setIsUsingItem(true);
     
     try {
-      const authToken = localStorage.getItem("authToken")
+      const authToken = localStorage.getItem("authToken");
       if (!authToken) {
-        router.push("/login")
-        return
+        router.push("/login");
+        return;
       }
       
-      if (item.category === "themes") {
-        // Apply theme visually immediately
-        let success = false;
-        
-        if (themeContext) {
-          success = themeContext.applyTheme(item.themeId);
-        } else {
-          console.log("Theme context not available yet, would apply theme:", item.themeId);
-        }
-        
-        if (!success && themeContext) {
-          alert(`Failed to apply theme: ${item.name}`);
-          setIsUsingItem(false);
-          return;
-        }
-      }
-      
+      // Make API call first
       const response = await fetch("http://127.0.0.1:5000/inventory/use", {
         method: "POST",
         headers: {
@@ -119,10 +103,10 @@ export default function InventoryPage() {
         body: JSON.stringify({
           itemId: item.id
         })
-      })
+      });
       
       if (response.ok) {
-        const data = await response.json()
+        const data = await response.json();
         
         if (item.category === "themes") {
           // Update inventory items to reflect the active theme
@@ -131,27 +115,33 @@ export default function InventoryPage() {
               ...i,
               isActive: i.category === "themes" ? i.id === item.id : i.isActive
             }))
-          )
+          );
           
-          alert(`${item.name} has been applied!`)
+          // Apply theme AFTER updating state
+          if (themeContext && themeContext.applyTheme) {
+            // Small delay to avoid conflicts
+            setTimeout(() => {
+              themeContext.applyTheme(item.themeId);
+            }, 50);
+          }
         } else if (item.category === "powerups") {
           // For powerups that affect coins
           if (item.id === "powerup-5") { // Bonus Coins
-            setCoins(data.currentCoins)
+            setCoins(data.currentCoins);
             
             // Remove used powerup
             setInventoryItems(prevItems => 
               prevItems.filter(i => i.id !== item.id)
-            )
+            );
             
-            alert(`You received 50 bonus coins!`)
+            alert(`You received 50 bonus coins!`);
           } else {
             // For other powerups
             if (item.usageLimit === 1) {
               // Remove one-time use powerups
               setInventoryItems(prevItems => 
                 prevItems.filter(i => i.id !== item.id)
-              )
+              );
             } else {
               // Decrease usesLeft for multi-use powerups
               setInventoryItems(prevItems => 
@@ -160,14 +150,14 @@ export default function InventoryPage() {
                     return {
                       ...i,
                       usesLeft: (i.usesLeft || item.usageLimit) - 1
-                    }
+                    };
                   }
-                  return i
+                  return i;
                 })
-              )
+              );
             }
             
-            alert(`${item.name} has been activated!`)
+            alert(`${item.name} has been activated!`);
           }
         } else if (item.category === "backgrounds") {
           // Update inventory items to reflect the active background
@@ -176,22 +166,21 @@ export default function InventoryPage() {
               ...i,
               isActive: i.category === "backgrounds" ? i.id === item.id : i.isActive
             }))
-          )
+          );
           
-          alert(`${item.name} has been applied!`)
+          alert(`${item.name} has been applied!`);
         }
       } else {
-        const errorData = await response.json()
-        alert(errorData.error || "Failed to use item")
+        const errorData = await response.json();
+        alert(errorData.error || "Failed to use item");
       }
     } catch (error) {
-      console.error("Error using item:", error)
-      alert("An error occurred. Please try again.")
+      console.error("Error using item:", error);
+      alert("An error occurred. Please try again.");
     }
     
-    setIsUsingItem(false)
+    setIsUsingItem(false);
   }
-
   // Filter items based on active category and search query
   const filteredItems = inventoryItems.filter((item) => {
     const matchesCategory = activeCategory === "all" || item.category === activeCategory

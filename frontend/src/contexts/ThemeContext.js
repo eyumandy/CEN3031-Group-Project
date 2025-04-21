@@ -1,4 +1,4 @@
-"use client";
+'use client';
 import React, { createContext, useState, useEffect, useContext } from 'react';
 
 // Define theme properties for all available themes
@@ -74,7 +74,6 @@ const themeProperties = {
     textColor: '#F5F3FF',
     textMuted: '#C4B5FD',
   },
-  // Add properties for new themes
   cyberpunk: {
     primary: '#F9A8D4',
     secondary: '#EC4899',
@@ -142,7 +141,7 @@ const themeProperties = {
     background: '#000000',
     cardBg: 'rgba(23, 23, 23, 0.7)',
     borderColor: 'rgba(163, 163, 163, 0.2)',
-    textColor: '#FFFFFF',
+    textColor: '#666666',
     textMuted: '#A3A3A3',
   },
   northernLights: {
@@ -171,6 +170,7 @@ const ThemeContext = createContext();
 
 export const ThemeProvider = ({ children }) => {
   const [currentTheme, setCurrentTheme] = useState('basic');
+  const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     // Check localStorage for saved theme
@@ -178,11 +178,13 @@ export const ThemeProvider = ({ children }) => {
     if (savedTheme && themeProperties[savedTheme]) {
       setCurrentTheme(savedTheme);
     }
+    
+    setIsInitialized(true);
   }, []);
 
   useEffect(() => {
     // Apply theme CSS variables when the theme changes
-    if (themeProperties[currentTheme]) {
+    if (themeProperties[currentTheme] && isInitialized) {
       const root = document.documentElement;
       const theme = themeProperties[currentTheme];
       
@@ -194,7 +196,7 @@ export const ThemeProvider = ({ children }) => {
       // Save current theme to localStorage
       localStorage.setItem('momentum-theme', currentTheme);
     }
-  }, [currentTheme]);
+  }, [currentTheme, isInitialized]);
 
   const applyTheme = (themeId) => {
     if (themeProperties[themeId]) {
@@ -205,7 +207,12 @@ export const ThemeProvider = ({ children }) => {
   };
 
   return (
-    <ThemeContext.Provider value={{ currentTheme, applyTheme, themes: themeProperties }}>
+    <ThemeContext.Provider value={{ 
+      currentTheme, 
+      applyTheme, 
+      themes: themeProperties,
+      isInitialized
+    }}>
       {children}
     </ThemeContext.Provider>
   );
