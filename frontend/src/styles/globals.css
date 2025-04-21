@@ -6,14 +6,30 @@
   --foreground-rgb: 255, 255, 255;
   --background-start-rgb: 0, 0, 0;
   --background-end-rgb: 5, 10, 21;
+  
+  /* Theme variables with default values */
+  --theme-primary: #00DCFF;
+  --theme-secondary: #3B82F6;
+  --theme-accent: #9333EA;
+  --theme-background: #000000;
+  --theme-cardBg: rgba(0, 0, 0, 0.4);
+  --theme-borderColor: rgba(255, 255, 255, 0.1);
+  --theme-textColor: #FFFFFF;
+  --theme-textMuted: #9CA3AF;
+}
+
+/* Theme transition - used to create a smooth transition when theme changes */
+.theme-transition * {
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
+  color: var(--theme-textColor);
+  background-color: var(--theme-background);
+  background-image: linear-gradient(
     to bottom,
-    rgb(var(--background-start-rgb)),
-    rgb(var(--background-end-rgb))
+    var(--theme-background),
+    color-mix(in srgb, var(--theme-background) 85%, var(--theme-primary) 15%)
   );
   min-height: 100vh;
 }
@@ -40,4 +56,87 @@ body {
 /* Text shadow effect for cyan text */
 .text-shadow-cyan {
   text-shadow: 0 0 15px rgba(0, 220, 255, 0.5), 0 0 30px rgba(0, 220, 255, 0.3);
+}
+
+/* Themed components - explicitly using CSS variables */
+.themed-button {
+  background-image: linear-gradient(to right, var(--theme-primary), var(--theme-secondary));
+  color: var(--theme-textColor);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.themed-card {
+  background-color: var(--theme-cardBg);
+  border-color: var(--theme-borderColor);
+  color: var(--theme-textColor);
+}
+
+.themed-heading {
+  color: var(--theme-primary);
+}
+
+.themed-text {
+  color: var(--theme-textColor);
+}
+
+.themed-text-muted {
+  color: var(--theme-textMuted);
+}
+
+.bg-gradient-primary {
+  background-image: linear-gradient(to right, var(--theme-primary), var(--theme-secondary));
+}
+
+.border-themed {
+  border-color: var(--theme-borderColor);
+}
+
+.shadow-themed {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Override Tailwind classes with theme variables */
+@layer base {
+  .bg-black {
+    background-color: var(--theme-background);
+  }
+  
+  .text-cyan-400 {
+    color: var(--theme-primary);
+  }
+  
+  .from-cyan-500 {
+    --tw-gradient-from: var(--theme-primary) var(--tw-gradient-from-position);
+    --tw-gradient-to: rgb(0 0 0 / 0) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+  }
+  
+  .to-blue-600 {
+    --tw-gradient-to: var(--theme-secondary) var(--tw-gradient-to-position);
+  }
+  
+  .border-white\/10 {
+    border-color: var(--theme-borderColor);
+  }
+  
+  .bg-black\/40 {
+    background-color: var(--theme-cardBg);
+  }
+}
+
+/* Debug utility class to visualize theme variables */
+.theme-debug {
+  position: fixed;
+  bottom: 10px;
+  left: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  border: 1px solid white;
+  color: white;
+  padding: 10px;
+  font-family: monospace;
+  font-size: 12px;
+  z-index: 9999;
+  max-width: 300px;
+  max-height: 200px;
+  overflow: auto;
 }
