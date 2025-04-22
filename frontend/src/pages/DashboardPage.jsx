@@ -190,6 +190,9 @@ export default function DashboardPage() {
           
           // Update coins with reward
           setCoins(data.currentCoins)
+
+          // Update Achievements
+          fetchAchievements()
         } else {
           console.error("Failed to complete habit")
         }
@@ -224,7 +227,7 @@ export default function DashboardPage() {
       console.error("Error deleting habit:", error)
     }
   }
-
+  
   // Filter habits based on active filter and search query
   const filteredHabits = habits.filter((habit) => {
     const matchesFilter = activeFilter === "all" || habit.frequency === activeFilter
@@ -519,14 +522,6 @@ export default function DashboardPage() {
                         borderLeftColor: habit.color || "#00DCFF",
                       }}
                     >
-                      {/* Completion indicator */}
-                      {habit.completedToday && (
-                        <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
-                          <div className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 rotate-45 bg-green-500 text-white py-1 px-8 text-xs font-mono">
-                            Done
-                          </div>
-                        </div>
-                      )}
 
                       <div className="flex justify-between items-start mb-3">
                         <h3 className="text-lg font-mono text-white">{habit.title}</h3>
