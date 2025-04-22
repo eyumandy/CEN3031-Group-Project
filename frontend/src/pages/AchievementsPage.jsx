@@ -24,12 +24,12 @@ import ProfileDropdown from "../components/ProfileDropdown"
 export default function AchievementsPage() {
   const router = useRouter()
   const [isLoaded, setIsLoaded] = useState(false)
-  const [coins, setCoins] = useState(150) // Starting coins for the user
+  const [coins, setCoins] = useState(0)
   const [achievements, setAchievements] = useState([])
   const [activeCategory, setActiveCategory] = useState("all")
   const [activeFilter, setActiveFilter] = useState("all") // all, earned, unearned
   const [searchQuery, setSearchQuery] = useState("")
-  
+
   // Check for authentication token on component mount
   useEffect(() => {
     const authToken = localStorage.getItem("authToken")
@@ -39,234 +39,76 @@ export default function AchievementsPage() {
       router.push("/login")
       return
     }
-    
-    // Sample achievements for presentation until we implement achievements in backend
-    setTimeout(() => {
-      setAchievements([
-        {
-          id: "achievement-1",
-          name: "Habit Guru",
-          description: "Complete 500 habits total",
-          category: "habits",
-          image: "/achievements/habit-guru.png",
-          rarity: "epic",
-          earned: true,
-          earnedDate: new Date("2023-12-15"),
-          progress: 100,
-          total: 500,
-          coinReward: 250,
-          claimed: true,
-        },
-        {
-          id: "achievement-2",
-          name: "Early Bird",
-          description: "Complete 50 morning habits",
-          category: "categories",
-          image: "/achievements/early-bird.png",
-          rarity: "uncommon",
-          earned: true,
-          earnedDate: new Date("2023-11-20"),
-          progress: 100,
-          total: 50,
-          coinReward: 75,
-          claimed: false,
-        },
-        {
-          id: "achievement-3",
-          name: "Night Owl",
-          description: "Complete 50 evening habits",
-          category: "categories",
-          image: "/achievements/night-owl.png",
-          rarity: "uncommon",
-          earned: false,
-          progress: 32,
-          total: 50,
-          coinReward: 75,
-          claimed: false,
-        },
-        {
-          id: "achievement-4",
-          name: "Wellness Warrior",
-          description: "Complete 100 wellness habits",
-          category: "categories",
-          image: "/achievements/wellness-warrior.png",
-          rarity: "rare",
-          earned: false,
-          progress: 67,
-          total: 100,
-          coinReward: 150,
-          claimed: false,
-        },
-        {
-          id: "achievement-5",
-          name: "Learning Legend",
-          description: "Complete 100 learning habits",
-          category: "categories",
-          image: "/achievements/learning-legend.png",
-          rarity: "rare",
-          earned: false,
-          progress: 42,
-          total: 100,
-          coinReward: 150,
-          claimed: false,
-        },
-        {
-          id: "achievement-6",
-          name: "Health Hero",
-          description: "Complete 100 health habits",
-          category: "categories",
-          image: "/achievements/health-hero.png",
-          rarity: "rare",
-          earned: false,
-          progress: 78,
-          total: 100,
-          coinReward: 150,
-          claimed: false,
-        },
-        {
-          id: "achievement-7",
-          name: "30-Day Champion",
-          description: "Maintain a 30-day streak on any habit",
-          category: "streaks",
-          image: "/achievements/30-day-champion.png",
-          rarity: "epic",
-          earned: true,
-          earnedDate: new Date("2023-10-30"),
-          progress: 100,
-          total: 30,
-          coinReward: 200,
-          claimed: true,
-        },
-        {
-          id: "achievement-8",
-          name: "100-Day Legend",
-          description: "Maintain a 100-day streak on any habit",
-          category: "streaks",
-          image: "/achievements/100-day-legend.png",
-          rarity: "legendary",
-          earned: false,
-          progress: 43,
-          total: 100,
-          coinReward: 400,
-          claimed: false,
-        },
-        {
-          id: "achievement-9",
-          name: "Habit Collector",
-          description: "Create and maintain 10 different habits simultaneously",
-          category: "special",
-          image: "/achievements/habit-collector.png",
-          rarity: "epic",
-          earned: false,
-          progress: 5,
-          total: 10,
-          coinReward: 250,
-          claimed: false,
-        },
-        {
-          id: "achievement-10",
-          name: "Perfect Week",
-          description: "Complete all your habits for 7 consecutive days",
-          category: "streaks",
-          image: "/achievements/perfect-week.png",
-          rarity: "rare",
-          earned: true,
-          earnedDate: new Date("2023-12-10"),
-          progress: 100,
-          total: 7,
-          coinReward: 125,
-          claimed: true,
-        },
-        {
-          id: "achievement-11",
-          name: "First Milestone",
-          description: "Complete your first 50 habits total",
-          category: "habits",
-          image: "/achievements/first-milestone.png",
-          rarity: "common",
-          earned: true,
-          earnedDate: new Date("2023-09-15"),
-          progress: 100,
-          total: 50,
-          coinReward: 50,
-          claimed: true,
-        },
-        {
-          id: "achievement-12",
-          name: "Productivity Master",
-          description: "Complete 1000 habits total",
-          category: "habits",
-          image: "/achievements/productivity-master.png",
-          rarity: "legendary",
-          earned: false,
-          progress: 652,
-          total: 1000,
-          coinReward: 500,
-          claimed: false,
-        },
-        {
-          id: "achievement-13",
-          name: "Consistency King",
-          description: "Complete at least one habit every day for 30 days",
-          category: "streaks",
-          image: "/achievements/consistency-king.png",
-          rarity: "epic",
-          earned: false,
-          progress: 22,
-          total: 30,
-          coinReward: 250,
-          claimed: false,
-        },
-        {
-          id: "achievement-14",
-          name: "Balanced Life",
-          description: "Maintain active habits in all categories simultaneously",
-          category: "special",
-          image: "/achievements/balanced-life.png",
-          rarity: "rare",
-          earned: false,
-          progress: 3,
-          total: 4,
-          coinReward: 150,
-          claimed: false,
-        },
-        {
-          id: "achievement-15",
-          name: "Weekend Warrior",
-          description: "Complete all habits on weekends for 4 consecutive weekends",
-          category: "special",
-          image: "/achievements/weekend-warrior.png",
-          rarity: "uncommon",
-          earned: true,
-          earnedDate: new Date("2023-11-26"),
-          progress: 100,
-          total: 4,
-          coinReward: 100,
-          claimed: false,
-        },
-      ])
-      setIsLoaded(true)
-    }, 800)
+    fetchCoins()
+    fetchAchievements().finally(() => setIsLoaded(true))
   }, [router])
-  // Handler for claiming achievement rewards
-  const handleClaimReward = (achievementId, coinReward) => {
-    // Update the achievement to mark it as claimed
-    setAchievements(
-      achievements.map((achievement) => {
-        if (achievement.id === achievementId) {
-          return {
-            ...achievement,
-            claimed: true,
-          }
-        }
-        return achievement
-      })
-    )
 
-    // Add the coins to the user's balance
-    setCoins((prevCoins) => prevCoins + coinReward)
+  const fetchCoins = async () => {
+    const authToken = localStorage.getItem("authToken")
+    if (!authToken) return
+    try {
+      const res = await fetch("http://127.0.0.1:5000/inventory", {
+        headers: { Authorization: `Bearer ${authToken}` }
+      })
+      if (!res.ok) throw new Error()
+      const { coins } = await res.json()
+      setCoins(coins)
+    } catch {
+      console.error("Could not load coins")
+    }
+  }
+  
+  const fetchAchievements = async () => {
+    const authToken = localStorage.getItem("authToken")
+    if (!authToken) return
+  
+    try {
+      const res = await fetch("http://127.0.0.1:5000/achievements", {
+        headers: { Authorization: `Bearer ${authToken}` }
+      })
+      if (!res.ok) throw new Error("Could not load achievements")
+  
+      const { achievements: data } = await res.json()
+      setAchievements(data)
+    } catch (err) {
+      console.error("Error fetching achievements:", err)
+    }
   }
 
+  // Handler for claiming achievement rewards
+  const handleClaimReward = async (achievementId) => {
+    const authToken = localStorage.getItem("authToken")
+    if (!authToken) return
+
+    try {
+      const res = await fetch(
+        `http://127.0.0.1:5000/achievements/${achievementId}/claim`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "application/json"
+          }
+        }
+      )
+      if (!res.ok) {
+        console.error("Claim failed")
+        return
+      }
+      const { achievement, currentCoins } = await res.json()
+
+      // replace that one achievement
+      setAchievements((prev) =>
+        prev.map((a) =>
+          a.id === achievement.id ? achievement : a
+        )
+      )
+      // update coins
+      setCoins(currentCoins)
+    } catch (err) {
+      console.error("Error claiming reward:", err)
+    }
+  }
   // Filter achievements based on active category, filter, and search query
   const filteredAchievements = achievements.filter((achievement) => {
     const matchesCategory = activeCategory === "all" || achievement.category === activeCategory
@@ -353,40 +195,6 @@ export default function AchievementsPage() {
             />
           </svg>
         )
-      case "categories":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"
-            />
-          </svg>
-        )
-      case "special":
-        return (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-4 w-4"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"
-            />
-          </svg>
-        )
       default:
         return (
           <svg
@@ -409,11 +217,12 @@ export default function AchievementsPage() {
 
   // Function to format dates
   const formatDate = (date) => {
-    return new Intl.DateTimeFormat("en-US", {
-      year: "numeric",
+    const d = new Date(date)
+    return d.toLocaleDateString(undefined, {
+      year:  "numeric",
       month: "short",
-      day: "numeric",
-    }).format(date)
+      day:   "numeric",
+    })
   }
   return (
     <div className="min-h-screen bg-black text-white">
@@ -617,26 +426,6 @@ export default function AchievementsPage() {
             >
                 Habits
             </button>
-            <button
-                onClick={() => setActiveCategory("categories")}
-                className={`px-4 py-2 rounded-md text-sm font-mono transition-all duration-300 ${
-                activeCategory === "categories"
-                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
-                    : "bg-black/40 border border-white/10 text-gray-300 hover:text-white"
-                }`}
-            >
-                Categories
-            </button>
-            <button
-                onClick={() => setActiveCategory("special")}
-                className={`px-4 py-2 rounded-md text-sm font-mono transition-all duration-300 ${
-                activeCategory === "special"
-                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
-                    : "bg-black/40 border border-white/10 text-gray-300 hover:text-white"
-                }`}
-            >
-                Special
-            </button>
             </div>
 
             <div className="flex w-full md:w-auto space-x-2">
@@ -814,7 +603,7 @@ export default function AchievementsPage() {
                               </div>
                             ) : (
                               <button
-                                onClick={() => handleClaimReward(achievement.id, achievement.coinReward)}
+                                onClick={() => handleClaimReward(achievement.id)}
                                 className="px-3 py-1.5 rounded-md text-sm font-mono transition-colors duration-300 flex items-center bg-gradient-to-r from-yellow-500 to-amber-600 hover:from-yellow-400 hover:to-amber-500 text-white shadow-lg shadow-yellow-500/20 hover:shadow-yellow-500/40"
                               >
                                 <svg
