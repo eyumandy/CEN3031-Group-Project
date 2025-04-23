@@ -173,12 +173,34 @@ export default function ThemeApplier() {
         color: ${theme.textMuted} !important; 
       }
       
-      /* SPECIAL CASE: Always make "Applied" button green - with very high specificity to override other styles */
+      /* Complete Button styling with theme colors */
+      button[data-complete="true"],
+      button:contains("Complete"),
+      a:contains("Complete"),
+      [role="button"]:contains("Complete"),
+      .complete-button,
+      .btn-complete {
+        background-color: ${theme.primary} !important;
+        color: ${theme.textColor} !important;
+        border: 1px solid ${theme.borderColor} !important;
+      }
+      
+      /* Complete Button checkmark styling */
+      button:contains("Complete") svg,
+      .complete-button svg,
+      .btn-complete svg,
+      svg.checkmark-icon {
+        color: ${theme.textColor} !important;
+        fill: ${theme.textColor} !important;
+        stroke: ${theme.textColor} !important;
+      }
+      
+      /* SPECIAL CASE: Applied button styling */
       [data-applied="true"],
       button[data-applied="true"],
       button svg[data-check-icon] + span,
       svg[data-check-icon] ~ span,
-      button:has(svg[data-check-icon]) {
+      button:has(svg[data-check-icon]):not(:contains("Complete")) {
         background-color: rgba(34, 197, 94, 0.2) !important; 
         background-image: none !important;
         color: rgb(74, 222, 128) !important;
@@ -186,9 +208,9 @@ export default function ThemeApplier() {
         cursor: default !important;
       }
 
-      /* Make sure SVG checkmarks are green */
-      svg[data-check-icon],
-      button svg[data-check-icon] path {
+      /* Make sure SVG checkmarks are green except in Complete buttons */
+      svg[data-check-icon]:not(.complete-icon),
+      button svg[data-check-icon]:not(.complete-icon) path {
         color: rgb(74, 222, 128) !important;
         stroke: rgb(74, 222, 128) !important;
       }
@@ -387,6 +409,37 @@ export default function ThemeApplier() {
         el.style.backgroundColor = theme.cardBg;
       });
       
+      // Handle "Complete" button styling with theme colors
+      document.querySelectorAll('button, a, [role="button"]').forEach(el => {
+        const buttonText = el.textContent?.trim();
+        
+        if (buttonText === "Complete") {
+          // Mark this as a complete button
+          el.setAttribute('data-complete', 'true');
+          el.classList.add('complete-button');
+          
+          // Apply theme color styling
+          el.style.backgroundColor = theme.primary;
+          el.style.color = theme.textColor;
+          el.style.border = `1px solid ${theme.borderColor}`;
+          
+          // Find and style any checkmark SVGs inside
+          const svgs = el.querySelectorAll('svg');
+          svgs.forEach(svg => {
+            svg.classList.add('complete-icon');
+            svg.style.color = theme.textColor;
+            svg.style.fill = theme.textColor;
+            
+            // Style all paths in the SVG
+            const paths = svg.querySelectorAll('path');
+            paths.forEach(path => {
+              path.style.stroke = theme.textColor;
+              path.style.fill = theme.textColor;
+            });
+          });
+        }
+      });
+      
       // *** IMPORTANT FIX: Handle "Apply Theme" button and logo SVG ***
       const applyThemeButtons = document.querySelectorAll('button, .button, [role="button"]');
       applyThemeButtons.forEach(button => {
@@ -503,8 +556,13 @@ export default function ThemeApplier() {
         });
       });
       
-      // Applied button styling
+      // Applied button styling - but make sure we exclude Complete buttons
       document.querySelectorAll('button').forEach(el => {
+        // Skip Complete buttons
+        if (el.textContent?.trim() === "Complete" || el.classList.contains('complete-button') || el.getAttribute('data-complete') === 'true') {
+          return;
+        }
+        
         // Handle Applied buttons specifically
         const textContent = el.textContent?.trim();
         if (textContent === "Applied") {
@@ -531,8 +589,14 @@ export default function ThemeApplier() {
         }
       });
       
-      // Find buttons with checkmark SVGs and style them as Applied
+      // Find buttons with checkmark SVGs and style them as Applied - but exclude Complete buttons
       document.querySelectorAll('button svg').forEach(svg => {
+        // Skip if in a Complete button
+        const button = svg.closest('button');
+        if (button && (button.textContent?.trim() === "Complete" || button.getAttribute('data-complete') === 'true' || button.classList.contains('complete-button'))) {
+          return;
+        }
+        
         const parent = svg.parentElement;
         const pathElements = svg.querySelectorAll('path');
         
@@ -546,7 +610,7 @@ export default function ThemeApplier() {
               d.includes('M5 13l4 4L19 7') || 
               d.includes('check')
           )) {
-            // This is likely a checkmark SVG
+            // This is likely a checkmark SVG - but not inside a Complete button
             svg.setAttribute('data-check-icon', 'true');
             path.style.stroke = "rgb(74, 222, 128)";
             
@@ -573,8 +637,44 @@ export default function ThemeApplier() {
     const observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (mutation.type === 'childList') {
-          // Look for new Applied buttons
+          // Look for new Complete buttons and mark them with theme colors
+          document.querySelectorAll('button, a, [role="button"]').forEach(el => {
+            const buttonText = el.textContent?.trim();
+            
+            if (buttonText === "Complete" && !el.classList.contains('complete-button') && el.getAttribute('data-complete') !== 'true') {
+              // Mark as a complete button
+              el.setAttribute('data-complete', 'true');
+              el.classList.add('complete-button');
+              
+              // Apply theme color styling
+              el.style.backgroundColor = theme.primary;
+              el.style.color = theme.textColor;
+              el.style.border = `1px solid ${theme.borderColor}`;
+              
+              // Find and style any checkmark SVGs inside
+              const svgs = el.querySelectorAll('svg');
+              svgs.forEach(svg => {
+                svg.classList.add('complete-icon');
+                svg.style.color = theme.textColor;
+                svg.style.fill = theme.textColor;
+                
+                // Style all paths in the SVG
+                const paths = svg.querySelectorAll('path');
+                paths.forEach(path => {
+                  path.style.stroke = theme.textColor;
+                  path.style.fill = theme.textColor;
+                });
+              });
+            }
+          });
+        
+          // Look for new Applied buttons - but skip Complete buttons
           document.querySelectorAll('button').forEach(el => {
+            // Skip Complete buttons
+            if (el.textContent?.trim() === "Complete" || el.classList.contains('complete-button') || el.getAttribute('data-complete') === 'true') {
+              return;
+            }
+            
             const textContent = el.textContent?.trim();
             if (textContent === "Applied") {
               el.style.backgroundColor = "rgba(34, 197, 94, 0.2)";
@@ -598,8 +698,14 @@ export default function ThemeApplier() {
             }
           });
           
-          // Find buttons with checkmark SVGs
+          // Find buttons with checkmark SVGs - but skip those in Complete buttons
           document.querySelectorAll('button svg').forEach(svg => {
+            // Skip if in a Complete button
+            const button = svg.closest('button');
+            if (button && (button.textContent?.trim() === "Complete" || button.getAttribute('data-complete') === 'true' || button.classList.contains('complete-button'))) {
+              return;
+            }
+            
             const parent = svg.parentElement;
             const pathElements = svg.querySelectorAll('path');
             
@@ -724,21 +830,45 @@ export default function ThemeApplier() {
         svg.removeAttribute('data-check-icon');
       });
       
-      // Reset Apply Theme button SVGs to use default text color
+      // Reset Complete button data attributes
+      document.querySelectorAll('[data-complete="true"]').forEach(el => {
+        el.removeAttribute('data-complete');
+      });
+      
+      // Reset Apply Theme button SVGs to preserve original appearance with default text color
       document.querySelectorAll('button, .button, [role="button"]').forEach(button => {
         const buttonText = button.textContent?.trim();
         if (buttonText === "Apply Theme") {
           const svgs = button.querySelectorAll('svg');
           svgs.forEach(svg => {
-            // Set to default text color instead of clearing
-            svg.style.fill = "#FFFFFF";
-            svg.style.color = "#FFFFFF";
+            // Clear fill on SVG itself
+            svg.style.fill = "";
+            svg.style.color = "";
             
-            // Set paths to default text color
+            // Reset individual paths more carefully
             const paths = svg.querySelectorAll('path');
             paths.forEach(path => {
-              path.style.fill = "#FFFFFF";
-              path.style.stroke = "#FFFFFF";
+              // Check original attributes to determine styling
+              const defaultFill = path.getAttribute('fill');
+              const defaultStroke = path.getAttribute('stroke');
+              
+              // Apply default styling while preserving the logo structure
+              if (defaultFill && defaultFill !== 'none') {
+                path.style.fill = "";
+              } else {
+                path.style.fill = "";
+              }
+              
+              if (defaultStroke && defaultStroke !== 'none') {
+                path.style.stroke = "";
+                // Preserve stroke width
+                const strokeWidth = path.getAttribute('stroke-width');
+                if (strokeWidth) {
+                  path.style.strokeWidth = strokeWidth;
+                }
+              } else {
+                path.style.stroke = "";
+              }
             });
           });
         }
@@ -746,8 +876,10 @@ export default function ThemeApplier() {
       
       // Remove any inline styles from buttons that might interfere with theming
       document.querySelectorAll('button').forEach(button => {
+        const textContent = button.textContent?.trim();
+        
         // Keep the actual Applied button's styling
-        if (button.textContent?.trim() === "Applied") {
+        if (textContent === "Applied") {
           button.style.backgroundColor = "rgba(34, 197, 94, 0.2)";
           button.style.backgroundImage = "none";
           button.style.color = "rgb(74, 222, 128)";
@@ -766,12 +898,15 @@ export default function ThemeApplier() {
               path.style.stroke = "rgb(74, 222, 128)";
             });
           });
-        } else {
+        } 
+        else {
           // Reset other buttons
           button.style.backgroundColor = "";
           button.style.backgroundImage = "";
           button.style.color = "";
           button.style.borderColor = "";
+          button.style.boxShadow = "";
+          button.style.fontWeight = "";
         }
       });
     } catch (err) {
@@ -819,40 +954,31 @@ export default function ThemeApplier() {
         svgEl.style.fill = '#FFFFFF';
       });
       
-      // Reset Apply Theme button SVGs to preserve original appearance with default text color
-      document.querySelectorAll('button, .button, [role="button"]').forEach(button => {
-        const buttonText = button.textContent?.trim();
-        if (buttonText === "Apply Theme") {
-          const svgs = button.querySelectorAll('svg');
+      // Reset Complete buttons to default theme
+      document.querySelectorAll('.complete-button, button[data-complete="true"], button, a, [role="button"]').forEach(el => {
+        const buttonText = el.textContent?.trim();
+        if (buttonText === "Complete" || el.classList.contains('complete-button') || el.getAttribute('data-complete') === 'true') {
+          // Use default theme colors for Complete buttons
+          el.style.backgroundColor = defaultTheme.primary;
+          el.style.color = defaultTheme.textColor;
+          el.style.border = `1px solid ${defaultTheme.borderColor}`;
+          
+          if (!el.classList.contains('complete-button')) {
+            el.classList.add('complete-button');
+          }
+          
+          // Reset checkmark SVGs inside Complete buttons
+          const svgs = el.querySelectorAll('svg');
           svgs.forEach(svg => {
-            // Clear fill on SVG itself
-            svg.style.fill = "";
+            svg.classList.add('complete-icon');
             svg.style.color = defaultTheme.textColor;
+            svg.style.fill = defaultTheme.textColor;
             
-            // Reset individual paths more carefully
+            // Style all paths in the SVG
             const paths = svg.querySelectorAll('path');
             paths.forEach(path => {
-              // Check original attributes to determine styling
-              const defaultFill = path.getAttribute('fill');
-              const defaultStroke = path.getAttribute('stroke');
-              
-              // Apply default styling while preserving the logo structure
-              if (defaultFill && defaultFill !== 'none') {
-                path.style.fill = defaultTheme.textColor;
-              } else {
-                path.style.fill = "";
-              }
-              
-              if (defaultStroke && defaultStroke !== 'none') {
-                path.style.stroke = defaultTheme.textColor;
-                // Preserve stroke width
-                const strokeWidth = path.getAttribute('stroke-width');
-                if (strokeWidth) {
-                  path.style.strokeWidth = strokeWidth;
-                }
-              } else {
-                path.style.stroke = "";
-              }
+              path.style.stroke = defaultTheme.textColor;
+              path.style.fill = defaultTheme.textColor;
             });
           });
         }
