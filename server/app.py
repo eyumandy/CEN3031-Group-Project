@@ -8,7 +8,9 @@ from pymongo import MongoClient
 from dotenv import load_dotenv
 import os
 from bson import ObjectId
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
+
+from default_achievements import DEFAULT_ACHIEVEMENTS
 
 # Load environment variables
 load_dotenv()
@@ -26,6 +28,7 @@ db = client['momentum_db']
 users_collection = db['users']
 habits_collection = db['user_habits']
 inventory_collection = db['user_inventory']
+achievements_collection = db['user_achievements']
 
 # Authentication endpoints
 @app.route('/register', methods=['POST'])
@@ -57,6 +60,12 @@ def register():
         'user_email': data['email'],
         'coins': 100,  # Starting coins for new users
         'items': []
+    })
+
+    # Initialize achievements for new user
+    achievements_collection.insert_one({
+        'user_email': data['email'],
+        'achievements': DEFAULT_ACHIEVEMENTS
     })
     
     return jsonify({'message': 'User registered successfully'}), 201
@@ -175,83 +184,210 @@ def update_habit(habit_id):
     
     return jsonify({'message': 'Habit updated successfully', 'habit': updated_habit}), 200
 
+def recalc_achievements_for_user(user_email):
+    # 1) Grab all habits for the user
+    user_doc = habits_collection.find_one({'user_email': user_email}) or {}
+    habits   = user_doc.get('habits', [])
+
+    # 2) Compute overall stats
+    total_completions = sum(h.get('totalCompletions', 0) for h in habits)
+
+    # 3) Build a map: category_name → sum of completions in that category
+    cat_counts = {}
+    for h in habits:
+        cat = h.get('category')
+        cat_counts[cat] = cat_counts.get(cat, 0) + h.get('totalCompletions', 0)
+
+    # 4) Longest streak across all habits
+    longest_streak = max((h.get('streak', 0) for h in habits), default=0)
+
+    # 5) Load or bail
+    doc = achievements_collection.find_one({'user_email': user_email})
+    if not doc:
+        return
+
+    achievements = doc.get('achievements', [])
+    updated = False
+
+    # 6) Walk each achievement
+    for ach in achievements:
+        if ach.get('earned'):
+            continue
+
+        cat = ach.get('category')
+
+        # 7) Choose the right counter
+        if   cat == 'habits':
+            progress = total_completions
+        elif cat == 'streaks':
+            progress = longest_streak
+        else:
+            # any other category string must match a habit.category
+            progress = cat_counts.get(cat, 0)
+
+        # clamp & compare
+        new_prog = min(progress, ach.get('total', 0))
+        if new_prog != ach.get('progress', 0):
+            ach['progress'] = new_prog
+            updated = True
+
+        # if complete, mark earned
+        if new_prog >= ach.get('total', 0):
+            ach['earned']     = True
+            ach['earnedDate'] = datetime.now(timezone.utc).isoformat()
+            updated = True
+
+    # 8) Write back if anything changed
+    if updated:
+        achievements_collection.update_one(
+            {'user_email': user_email},
+            {'$set': {'achievements': achievements}}
+        )
+        
+@app.route('/achievements', methods=['GET'])
+@jwt_required()
+def get_achievements():
+    user_email = get_jwt_identity()
+    doc = achievements_collection.find_one({'user_email': user_email})
+
+    if not doc:
+        achievements_collection.insert_one({
+            'user_email': user_email,
+            'achievements': DEFAULT_ACHIEVEMENTS  # or []
+        })
+        return jsonify({'achievements': []}), 200
+
+    achievements = doc.get('achievements', [])
+    updated = False
+
+    for ach in achievements:
+        if not ach.get('earned', False) and ach.get('progress', 0) >= ach.get('total', 0):
+            ach['earned'] = True
+            ach['earnedDate'] = datetime.utcnow().isoformat()
+            updated = True
+
+    if updated:
+        achievements_collection.update_one(
+            {'user_email': user_email},
+            {'$set': {'achievements': achievements}}
+        )
+
+    return jsonify({'achievements': achievements}), 200
+
+@app.route('/achievements/<achievement_id>/claim', methods=['POST'])
+@jwt_required()
+def claim_achievement(achievement_id):
+    user_email = get_jwt_identity()
+
+    user_doc = achievements_collection.find_one({'user_email': user_email})
+    if not user_doc:
+        return jsonify({'error': 'No achievements found'}), 404
+
+    achievements = user_doc.get('achievements', [])
+    ach = next((a for a in achievements if a['id'] == achievement_id), None)
+    if not ach:
+        return jsonify({'error': 'Achievement not found'}), 404
+
+    if not ach.get('earned', False):
+        return jsonify({'error': 'Achievement not yet earned'}), 400
+    if ach.get('claimed', False):
+        return jsonify({'error': 'Achievement already claimed'}), 400
+
+    achievements_collection.update_one(
+        {'user_email': user_email, 'achievements.id': achievement_id},
+        {'$set': {
+            'achievements.$.claimed': True
+        }}
+    )
+
+    coin_reward = ach.get('coinReward', 0)
+    inventory_collection.update_one(
+        {'user_email': user_email},
+        {'$inc': {'coins': coin_reward}}
+    )
+    inv = inventory_collection.find_one({'user_email': user_email})
+
+    updated_ach = next((a for a in achievements if a['id'] == achievement_id), None)
+    updated_ach['claimed'] = True
+
+    return jsonify({
+      'achievement': updated_ach,
+      'currentCoins': inv.get('coins', 0)
+    }), 200
+
 @app.route('/habits/<habit_id>/complete', methods=['POST'])
 @jwt_required()
 def complete_habit(habit_id):
-    current_user = get_jwt_identity()
-    
-    # Find the user's habits
-    user_habits = habits_collection.find_one({'user_email': current_user})
-    if not user_habits:
+    user_email = get_jwt_identity()
+
+    user_doc = habits_collection.find_one({'user_email': user_email})
+    if not user_doc:
         return jsonify({'error': 'No habits found for user'}), 404
-    
-    # Find the specific habit
-    habit = None
-    habit_index = None
-    for i, h in enumerate(user_habits.get('habits', [])):
-        if h.get('id') == habit_id:
+    habits = user_doc.get('habits', [])
+
+    for idx, h in enumerate(habits):
+        if h['id'] == habit_id:
             habit = h
-            habit_index = i
             break
-    
-    if habit is None:
+    else:
         return jsonify({'error': 'Habit not found'}), 404
-    
-    # Check if already completed today
+
     if habit.get('completedToday'):
         return jsonify({'error': 'Habit already completed today'}), 400
-    
-    # Calculate streak and reward
-    last_completed = habit.get('lastCompletedAt')
-    streak_continued = False
-    
-    if last_completed:
-        # Logic for determining if streak continues (simplified)
-        # In a real app, you'd have more complex logic for daily/weekly habits
-        streak_continued = True
-    
-    # Update habit completion status
-    habits_collection.update_one(
-        {'user_email': current_user},
-        {
-            '$set': {
-                f'habits.{habit_index}.completedToday': True,
-                f'habits.{habit_index}.lastCompletedAt': datetime.utcnow().isoformat(),
-                f'habits.{habit_index}.streak': habit.get('streak', 0) + (1 if streak_continued else 0),
-                f'habits.{habit_index}.totalCompletions': habit.get('totalCompletions', 0) + 1
-            }
-        }
-    )
-    
-    # Award coins to user
-    base_reward = habit.get('coinReward', 10)
+
+    now_utc = datetime.now(timezone.utc)
+    today   = now_utc.date()
+
+    last_iso = habit.get('lastCompletedAt')
+    if last_iso:
+        last_dt   = datetime.fromisoformat(last_iso)
+        last_dt   = last_dt.astimezone(timezone.utc)
+        last_date = last_dt.date()
+    else:
+        last_date = None
+
+    continued = last_date is not None and (today - last_date == timedelta(days=1))
+    new_streak = (habit.get('streak', 0) + 1) if continued else 1
+
+    new_total    = habit.get('totalCompletions', 0) + 1
+    base_reward  = habit.get('coinReward', 10)
     streak_bonus = 0
-    if habit.get('streak', 0) >= 5:
+    if new_streak >= 5:  
         streak_bonus += 5
-    if habit.get('streak', 0) >= 10:
+    if new_streak >= 10: 
         streak_bonus += 5
-    if habit.get('streak', 0) >= 30:
+    if new_streak >= 30: 
         streak_bonus += 10
-    
     total_reward = base_reward + streak_bonus
-    
+
+    update_fields = {
+        f"habits.{idx}.completedToday":    True,
+        f"habits.{idx}.lastCompletedAt":   now_utc.isoformat(),
+        f"habits.{idx}.streak":            new_streak,
+        f"habits.{idx}.totalCompletions":  new_total
+    }
+    habits_collection.update_one(
+        {'user_email': user_email},
+        {'$set': update_fields}
+    )
+
+    # Award coins
     inventory_collection.update_one(
-        {'user_email': current_user},
+        {'user_email': user_email},
         {'$inc': {'coins': total_reward}}
     )
-    
-    # Get updated habit
-    updated_habits = habits_collection.find_one({'user_email': current_user})
-    updated_habit = next((h for h in updated_habits.get('habits', []) if h.get('id') == habit_id), None)
-    
-    # Get updated coins
-    user_inventory = inventory_collection.find_one({'user_email': current_user})
-    current_coins = user_inventory.get('coins', 0)
-    
+
+    # Fetch Achievements
+    recalc_achievements_for_user(user_email)
+
+    updated_habits = habits_collection.find_one({'user_email': user_email})['habits']
+    updated_habit  = next(h for h in updated_habits if h['id'] == habit_id)
+    current_coins  = inventory_collection.find_one({'user_email': user_email})['coins']
+
     return jsonify({
-        'message': 'Habit completed successfully',
-        'habit': updated_habit,
-        'reward': total_reward,
+        'message':      'Habit completed successfully',
+        'habit':        updated_habit,
+        'reward':       total_reward,
         'currentCoins': current_coins
     }), 200
 

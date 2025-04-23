@@ -182,6 +182,9 @@ export default function DashboardPage() {
           
           // Update coins with reward
           setCoins(data.currentCoins)
+
+          // Update Achievements
+          fetchAchievements()
         } else {
           console.error("Failed to complete habit")
         }
@@ -216,7 +219,7 @@ export default function DashboardPage() {
       console.error("Error deleting habit:", error)
     }
   }
-
+  
   // Filter habits based on active filter and search query
   const filteredHabits = habits.filter((habit) => {
     const matchesFilter = activeFilter === "all" || habit.frequency === activeFilter
