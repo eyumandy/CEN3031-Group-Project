@@ -332,8 +332,6 @@ export default function ShopPage() {
         // Close the modal
         setSelectedItem(null)
         
-        // Show success message
-        alert(`Successfully purchased ${selectedItem.name}!`)
       } else {
         const errorData = await response.json()
         setPurchaseError(errorData.error || "Failed to purchase item")

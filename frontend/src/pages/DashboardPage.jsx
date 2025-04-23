@@ -193,8 +193,6 @@ export default function DashboardPage() {
 
   // Delete habit
   const handleDeleteHabit = async (id) => {
-    if (!confirm("Are you sure you want to delete this habit?")) return
-    
     try {
       const authToken = localStorage.getItem("authToken")
       if (!authToken) return
