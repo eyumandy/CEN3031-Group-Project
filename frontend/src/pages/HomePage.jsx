@@ -385,7 +385,11 @@ export default function HomePage() {
         {/* Logo and brand */}
         <div className="flex items-center space-x-2">
           <div className="w-8 h-8 relative">
-            <svg viewBox="0 0 1380 1090" className="w-full h-full fill-white">
+          <svg
+              viewBox="0 0 1380 1090"
+              className="w-full h-full fill-white"
+              style={{ transform: 'scaleY(-1)' }}
+            >
               <path d={MOMENTUM_LOGO_PATH} />
             </svg>
             <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-transparent blur-sm rounded-full"></div>

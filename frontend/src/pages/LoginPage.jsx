@@ -109,9 +109,10 @@ export default function LoginPage() {
             Momentum
           </span>
           <div className="w-10 h-10 relative">
-            <svg
+          <svg
               viewBox="0 0 1380 1090"
-              className="w-full h-full fill-white group-hover:fill-cyan-400 transition-colors duration-300"
+              className="w-full h-full fill-white"
+              style={{ transform: 'scaleY(-1)' }}
             >
               <path d={MOMENTUM_LOGO_PATH} />
             </svg>

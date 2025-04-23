@@ -541,7 +541,7 @@ export default function ShopPage() {
               </div>
 
               <NotificationDropdown />
-              <ProfileDropdown />
+              <ProfileDropdown userName="John Smith" userEmail="user@momentum.app" userInitials="JS" />
             </div>
           </div>
         </div>

@@ -25,8 +25,6 @@ export default function RootLayout({ children }) {
           {/* Main content */}
           {children}
           
-          {/* Theme debugger helps us diagnose theme issues */}
-          {process.env.NODE_ENV !== 'production' && <ThemeDebugger />}
         </ThemeProvider>
       </body>
     </html>

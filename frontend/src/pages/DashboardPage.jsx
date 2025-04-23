@@ -36,7 +36,8 @@ export default function DashboardPage() {
     category: "wellness",
     timeOfDay: "any",
     difficulty: "medium",
-    color: "#00DCFF"
+    color: "#00DCFF",
+    coinReward: 10
   })
   const [isCreating, setIsCreating] = useState(false)
   const [error, setError] = useState("")
@@ -131,7 +132,8 @@ export default function DashboardPage() {
           category: "wellness",
           timeOfDay: "any",
           difficulty: "medium",
-          color: "#00DCFF"
+          color: "#00DCFF",
+          coinReward: 10
         })
         setShowCreateModal(false)
       } else {
@@ -155,18 +157,8 @@ export default function DashboardPage() {
       const habit = habits.find(h => h.id === id)
       
       if (habit.completedToday) {
-        // If already completed, update UI only for now (implement undo in the future)
-        setHabits(habits.map((h) => {
-          if (h.id === id) {
-            return {
-              ...h,
-              completedToday: false,
-              streak: Math.max(0, h.streak - 1),
-              totalCompletions: h.totalCompletions > 0 ? h.totalCompletions - 1 : 0,
-            }
-          }
-          return h
-        }))
+        // If already completed, do nothing
+        return
       } else {
         // Mark as completed via API
         const response = await fetch(`http://127.0.0.1:5000/habits/${id}/complete`, {
@@ -247,9 +239,13 @@ export default function DashboardPage() {
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 relative">
-              <svg viewBox="0 0 1380 1090" className="w-full h-full fill-white">
-                <path d={MOMENTUM_LOGO_PATH} />
-              </svg>
+            <svg
+              viewBox="0 0 1380 1090"
+              className="w-full h-full fill-white"
+              style={{ transform: 'scaleY(-1)' }}
+            >
+              <path d={MOMENTUM_LOGO_PATH} />
+            </svg>
               <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-transparent blur-sm rounded-full"></div>
             </div>
             <span className="text-white font-mono text-lg tracking-tight">Momentum</span>
@@ -335,16 +331,16 @@ export default function DashboardPage() {
         >
           <h1 className="text-2xl md:text-3xl font-mono font-light mb-6">
             Your Habit Dashboard
-            <span className="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Today</span>
+            <span className="ml-2 text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-fuchsia-500">Today</span>
           </h1>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-            <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-4 shadow-lg">
+            <div className="bg-purple-900/20 backdrop-blur-sm border border-purple-900/30 rounded-lg p-4 shadow-lg">
               <div className="flex items-center justify-between">
-                <h3 className="text-gray-400 font-mono text-sm">Total Habits</h3>
+                <h3 className="text-gray-300 font-mono text-sm">Total Habits</h3>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-cyan-400"
+                  className="h-5 w-5 text-fuchsia-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -360,9 +356,9 @@ export default function DashboardPage() {
               <p className="text-2xl font-mono mt-2">{totalHabits}</p>
             </div>
 
-            <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-4 shadow-lg">
+            <div className="bg-purple-900/20 backdrop-blur-sm border border-purple-900/30 rounded-lg p-4 shadow-lg">
               <div className="flex items-center justify-between">
-                <h3 className="text-gray-400 font-mono text-sm">Completed Today</h3>
+                <h3 className="text-gray-300 font-mono text-sm">Completed Today</h3>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   className="h-5 w-5 text-green-500"
@@ -378,12 +374,12 @@ export default function DashboardPage() {
               </p>
             </div>
 
-            <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-4 shadow-lg">
+            <div className="bg-purple-900/20 backdrop-blur-sm border border-purple-900/30 rounded-lg p-4 shadow-lg">
               <div className="flex items-center justify-between">
-                <h3 className="text-gray-400 font-mono text-sm">Completion Rate</h3>
+                <h3 className="text-gray-300 font-mono text-sm">Completion Rate</h3>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-blue-500"
+                  className="h-5 w-5 text-fuchsia-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -399,12 +395,12 @@ export default function DashboardPage() {
               <p className="text-2xl font-mono mt-2">{completionRate}%</p>
             </div>
 
-            <div className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-4 shadow-lg">
+            <div className="bg-purple-900/20 backdrop-blur-sm border border-purple-900/30 rounded-lg p-4 shadow-lg">
               <div className="flex items-center justify-between">
-                <h3 className="text-gray-400 font-mono text-sm">Longest Streak</h3>
+                <h3 className="text-gray-300 font-mono text-sm">Longest Streak</h3>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-orange-500"
+                  className="h-5 w-5 text-orange-400"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -429,8 +425,8 @@ export default function DashboardPage() {
               onClick={() => setActiveFilter("all")}
               className={`px-4 py-2 rounded-md text-sm font-mono transition-all duration-300 ${
                 activeFilter === "all"
-                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
-                  : "bg-black/40 border border-white/10 text-gray-300 hover:text-white"
+                  ? "bg-gradient-to-r from-fuchsia-500 to-fuchsia-400 text-white"
+                  : "bg-black/40 border border-purple-900/60 text-gray-300 hover:text-white"
               }`}
             >
               All Habits
@@ -439,8 +435,8 @@ export default function DashboardPage() {
               onClick={() => setActiveFilter("daily")}
               className={`px-4 py-2 rounded-md text-sm font-mono transition-all duration-300 ${
                 activeFilter === "daily"
-                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
-                  : "bg-black/40 border border-white/10 text-gray-300 hover:text-white"
+                  ? "bg-gradient-to-r from-fuchsia-500 to-fuchsia-400 text-white"
+                  : "bg-black/40 border border-purple-900/60 text-gray-300 hover:text-white"
               }`}
             >
               Daily
@@ -449,41 +445,53 @@ export default function DashboardPage() {
               onClick={() => setActiveFilter("weekly")}
               className={`px-4 py-2 rounded-md text-sm font-mono transition-all duration-300 ${
                 activeFilter === "weekly"
-                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20"
-                  : "bg-black/40 border border-white/10 text-gray-300 hover:text-white"
+                  ? "bg-gradient-to-r from-fuchsia-500 to-fuchsia-400 text-white"
+                  : "bg-black/40 border border-purple-900/60 text-gray-300 hover:text-white"
               }`}
             >
               Weekly
             </button>
+            <button
+              onClick={() => setActiveFilter("monthly")}
+              className={`px-4 py-2 rounded-md text-sm font-mono transition-all duration-300 ${
+                activeFilter === "monthly"
+                  ? "bg-gradient-to-r from-fuchsia-500 to-fuchsia-400 text-white"
+                  : "bg-black/40 border border-purple-900/60 text-gray-300 hover:text-white"
+              }`}
+            >
+              Monthly
+            </button>
           </div>
 
           <div className="flex w-full md:w-auto space-x-2">
-            <div className="relative flex-grow md:w-64">
+            <div className="relative flex items-center w-full md:w-64">
               <input
                 type="text"
                 placeholder="Search habits..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 text-white font-mono text-sm"
+                className="w-full py-2 pr-10 pl-4 bg-black/40 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 text-white font-mono text-sm"
               />
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                />
-              </svg>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-5 w-5 text-gray-400"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
             </div>
             <button
               onClick={() => setShowCreateModal(true)}
-              className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white px-4 py-2 rounded-md transition-all duration-300 text-sm font-mono shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40 flex items-center"
+              className="bg-gradient-to-r from-fuchsia-500 to-fuchsia-400 hover:from-fuchsia-400 hover:to-fuchsia-300 text-white px-4 py-2 rounded-md transition-all duration-300 text-sm font-mono shadow-lg flex items-center"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -513,27 +521,31 @@ export default function DashboardPage() {
                     transition={{ duration: 0.4, delay: index * 0.1 }}
                   >
                     <div
-                      className="bg-black/40 backdrop-blur-sm border border-white/10 rounded-lg p-6 shadow-lg relative overflow-hidden group"
+                      className="bg-purple-900/20 backdrop-blur-sm border border-purple-900/30 rounded-lg p-6 shadow-lg relative overflow-hidden group"
                       style={{
                         borderLeftWidth: "4px",
                         borderLeftColor: habit.color || "#00DCFF",
                       }}
                     >
-                      {/* Completion indicator */}
+                      {/* Improved completion indicator that matches the design */}
                       {habit.completedToday && (
-                        <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden">
-                          <div className="absolute top-0 right-0 transform translate-x-1/2 -translate-y-1/2 rotate-45 bg-green-500 text-white py-1 px-8 text-xs font-mono">
-                            Done
+                        <div className="absolute top-3 right-3 flex items-center justify-between">
+                          <div className="bg-green-500 text-white py-1 px-2 rounded-md font-mono text-xs flex items-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-3.5 w-3.5 mr-1"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Completed
                           </div>
-                        </div>
-                      )}
-
-                      <div className="flex justify-between items-start mb-3">
-                        <h3 className="text-lg font-mono text-white">{habit.title}</h3>
-                        <div className="relative">
+                          {/* Move delete button next to completion status when completed */}
                           <button
                             onClick={() => handleDeleteHabit(habit.id)}
-                            className="text-gray-400 hover:text-red-400 transition-colors duration-300 focus:outline-none"
+                            className="ml-2 text-gray-400 hover:text-red-400 transition-colors duration-300 focus:outline-none"
                           >
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
@@ -551,25 +563,59 @@ export default function DashboardPage() {
                             </svg>
                           </button>
                         </div>
+                      )}
+
+                      <div className="flex justify-between items-start mb-3">
+                        <div className="flex items-center">
+                          <div 
+                            className="w-3 h-3 rounded-full mr-2" 
+                            style={{ backgroundColor: habit.color || "#00DCFF" }}
+                          ></div>
+                          <h3 className="text-lg font-mono text-white">{habit.title}</h3>
+                        </div>
+                        {/* Only show delete button here if not completed */}
+                        {!habit.completedToday && (
+                          <div className="relative">
+                            <button
+                              onClick={() => handleDeleteHabit(habit.id)}
+                              className="text-gray-400 hover:text-red-400 transition-colors duration-300 focus:outline-none"
+                            >
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                className="h-5 w-5"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                                />
+                              </svg>
+                            </button>
+                          </div>
+                        )}
                       </div>
 
                       <p className="text-gray-400 text-sm mb-4 font-mono">{habit.description}</p>
 
                       <div className="flex flex-wrap gap-2 mb-4">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-white/10 text-gray-300">
-                          <span className="ml-1 capitalize">{habit.category}</span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-purple-900/30 text-gray-200">
+                          <span className="capitalize">{habit.category}</span>
                         </span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-white/10 text-gray-300">
-                          <span className="ml-1 capitalize">{habit.timeOfDay ? habit.timeOfDay.replace("-", " ") : "any time"}</span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-purple-900/30 text-gray-200">
+                          <span className="capitalize">{habit.timeOfDay ? habit.timeOfDay.replace("-", " ") : "Any"}</span>
                         </span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-white/10 text-gray-300">
-                          <span className="ml-1 capitalize">{habit.frequency}</span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-purple-900/30 text-gray-200">
+                          <span className="capitalize">{habit.frequency}</span>
                         </span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-white/10 text-gray-300">
-                          <span className="ml-1">{habit.difficulty || "medium"}</span>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-purple-900/30 text-gray-200">
+                          <span className="capitalize">{habit.difficulty || "medium"}</span>
                         </span>
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono bg-yellow-500/20 text-yellow-300">
-                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3.5 w-3.5 mr-1" viewBox="0 0 20 20" fill="currentColor">
                             <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
                             <path
                               fillRule="evenodd"
@@ -615,42 +661,23 @@ export default function DashboardPage() {
                           </div>
                         </div>
 
-                        <button
-                          onClick={() => handleToggleComplete(habit.id)}
-                          className={`${
-                            habit.completedToday
-                              ? "bg-green-500/20 text-green-400 hover:bg-green-500/30"
-                              : "bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white"
-                          } px-3 py-1.5 rounded-md text-sm font-mono transition-colors duration-300 flex items-center`}
-                        >
-                          {habit.completedToday ? (
-                            <>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-4 w-4 mr-1"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              Completed
-                            </>
-                          ) : (
-                            <>
-                              <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                className="h-4 w-4 mr-1"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                              >
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                              Complete
-                            </>
-                          )}
-                        </button>
+                        {!habit.completedToday && (
+                          <button
+                            onClick={() => handleToggleComplete(habit.id)}
+                            className="bg-green-600 text-white hover:bg-green-500 px-3 py-1.5 rounded-md text-xs font-mono transition-colors duration-300 flex items-center"
+                          >
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="h-3.5 w-3.5 mr-1"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Complete
+                          </button>
+                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -838,6 +865,35 @@ export default function DashboardPage() {
                       <option value="medium">Medium</option>
                       <option value="hard">Hard</option>
                     </select>
+                  </div>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-mono text-gray-400 mb-1">Coin Reward</label>
+                  <div className="flex items-center">
+                    <input
+                      type="number"
+                      min="1"
+                      max="100"
+                      value={newHabit.coinReward}
+                      onChange={(e) => setNewHabit({...newHabit, coinReward: parseInt(e.target.value) || 10})}
+                      className="w-full px-4 py-2 bg-black/50 border border-gray-700 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 text-white font-mono text-sm"
+                    />
+                    <div className="flex items-center ml-2 bg-black/40 border border-yellow-500/30 rounded-full px-2 py-1">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-4 w-4 text-yellow-500 mr-1"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                        <path
+                          fillRule="evenodd"
+                          d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
+                          clipRule="evenodd"
+                        />
+                      </svg>
+                    </div>
                   </div>
                 </div>
                 
