@@ -1,18 +1,18 @@
+/**
+ * ThemeApplier.jsx
+ * 
+ * A component that applies theme variables directly to HTML elements
+ * Only applies themes to specific pages (shop, inventory, dashboard, achievements)
+ * Comprehensive theme application for all UI elements including text, shadows, and logo effects
+ * 
+ * @returns {null} This component doesn't render anything visible
+ */
 "use client";
 
 import { useEffect, useRef } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
 import { usePathname } from 'next/navigation';
 
-/**
- * ThemeApplier.jsx
- * 
- * A component that applies theme variables directly to HTML elements
- * Only applies themes to specific pages (shop, inventory, dashboard, achievements)
- * Comprehensive theme application for all UI elements including text, shadows, and subtle effects
- * 
- * @returns {null} This component doesn't render anything visible
- */
 export default function ThemeApplier() {
   const { currentTheme, themes, isInitialized } = useTheme();
   const pathname = usePathname();
@@ -62,6 +62,10 @@ export default function ThemeApplier() {
     const theme = themes[themeName];
     if (!theme) return;
     
+    // First reset any previously themed elements
+    // This ensures we don't have lingering styles from previous themes
+    resetElementStyling();
+    
     // Apply theme-specific class to body
     document.body.classList.add('theme-transition');
     document.body.setAttribute('data-theme', themeName);
@@ -103,6 +107,15 @@ export default function ThemeApplier() {
       /* Background */
       body { 
         background-color: ${theme.background} !important; 
+      }
+      
+      /* Logo glow styling based on theme */
+      .logo-glow,
+      .absolute.inset-0.bg-gradient-to-tr.from-cyan-500\\/20.to-transparent,
+      div.w-8.h-8.relative .absolute.inset-0,
+      div.w-10.h-10.relative .absolute.inset-0 {
+        background-image: linear-gradient(to top right, ${theme.primary}33, transparent) !important;
+        box-shadow: 0 0 15px ${theme.primary}33 !important;
       }
       
       /* Dashboard Stat Boxes - IMPORTANT FIX */
@@ -160,23 +173,25 @@ export default function ThemeApplier() {
         color: ${theme.textMuted} !important; 
       }
       
-      /* Preserve rarity colors */
-      .text-green-400, span.text-green-400, span.text-xs.font-mono.uppercase.text-green-400,
-      .text-blue-400, span.text-blue-400, span.text-xs.font-mono.uppercase.text-blue-400,
-      .text-purple-400, span.text-purple-400, span.text-xs.font-mono.uppercase.text-purple-400,
-      .text-yellow-400, span.text-yellow-400, span.text-xs.font-mono.uppercase.text-yellow-400,
-      span[class*="text-green-"], span[class*="text-blue-"], 
-      span[class*="text-purple-"], span[class*="text-yellow-"] {
-        /* Don't override these colors with !important */
-        color: inherit;
+      /* SPECIAL CASE: Always make "Applied" button green - with very high specificity to override other styles */
+      [data-applied="true"],
+      button[data-applied="true"],
+      button svg[data-check-icon] + span,
+      svg[data-check-icon] ~ span,
+      button:has(svg[data-check-icon]) {
+        background-color: rgba(34, 197, 94, 0.2) !important; 
+        background-image: none !important;
+        color: rgb(74, 222, 128) !important;
+        border-color: rgba(34, 197, 94, 0.3) !important;
+        cursor: default !important;
       }
-      
-      /* Rarity color specifics for shop and inventory */
-      span.text-xs.font-mono.uppercase.text-gray-300 { color: #9CA3AF !important; } /* common */
-      span.text-xs.font-mono.uppercase.text-green-400 { color: #4ADE80 !important; } /* uncommon */
-      span.text-xs.font-mono.uppercase.text-blue-400 { color: #60A5FA !important; } /* rare */
-      span.text-xs.font-mono.uppercase.text-purple-400 { color: #C084FC !important; } /* epic */
-      span.text-xs.font-mono.uppercase.text-yellow-400 { color: #FACC15 !important; } /* legendary */
+
+      /* Make sure SVG checkmarks are green */
+      svg[data-check-icon],
+      button svg[data-check-icon] path {
+        color: rgb(74, 222, 128) !important;
+        stroke: rgb(74, 222, 128) !important;
+      }
       
       /* Standard text */
       .text-white,
@@ -185,7 +200,7 @@ export default function ThemeApplier() {
       .text-base,
       h1, h2, h3, h4, h5, h6,
       p, div, span:not([class*="text-gray"]):not([class*="text-cyan"]):not([class*="text-yellow"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-purple"]),
-      button:not([class*="from-cyan"]) { 
+      button:not([data-applied="true"]):not(:has(svg[data-check-icon])) { 
         color: ${theme.textColor} !important; 
       }
       
@@ -219,12 +234,11 @@ export default function ThemeApplier() {
       }
       
       /* Button gradients - except for "Applied" button */
-      .bg-gradient-to-r.from-cyan-500.to-blue-600:not(.bg-green-500\\/20):not([class*="Applied"]),
-      .bg-gradient-to-r.from-cyan-400.to-blue-500:not(.bg-green-500\\/20):not([class*="Applied"]),
-      /* Update to also catch the dashboard button gradients */
-      .bg-gradient-to-r.from-fuchsia-500.to-fuchsia-400:not(.bg-green-500\\/20):not([class*="Applied"]),
-      button.bg-gradient-to-r:not(.bg-green-500\\/20):not([class*="Applied"]),
-      a.bg-gradient-to-r:not(.bg-green-500\\/20):not([class*="Applied"]) {
+      .bg-gradient-to-r.from-cyan-500.to-blue-600:not([data-applied="true"]):not(:has(svg[data-check-icon])),
+      .bg-gradient-to-r.from-cyan-400.to-blue-500:not([data-applied="true"]):not(:has(svg[data-check-icon])),
+      .bg-gradient-to-r.from-fuchsia-500.to-fuchsia-400:not([data-applied="true"]):not(:has(svg[data-check-icon])),
+      button.bg-gradient-to-r:not([data-applied="true"]):not(:has(svg[data-check-icon])),
+      a.bg-gradient-to-r:not([data-applied="true"]):not(:has(svg[data-check-icon])) {
         background-image: linear-gradient(to right, ${theme.primary}, ${theme.secondary}) !important;
       }
       
@@ -292,17 +306,6 @@ export default function ThemeApplier() {
         background-color: ${theme.cardBg} !important;
       }
       
-      /* SPECIAL CASE: Always make "Applied" button green */
-      .bg-green-500\\/20,
-      button.bg-green-500\\/20,
-      [class*="Applied"],
-      button:contains("Applied") {
-        background-color: rgba(34, 197, 94, 0.2) !important; 
-        background-image: none !important;
-        color: rgb(74, 222, 128) !important;
-        cursor: default !important;
-      }
-      
       /* Force hardware acceleration for smoother transitions */
       .theme-transition * {
         -webkit-transform: translateZ(0);
@@ -313,28 +316,33 @@ export default function ThemeApplier() {
     
     // Apply direct styles to specific elements that might be hard to target with CSS
     try {
+      // Apply theme to logo glow
+      document.querySelectorAll('.absolute.inset-0.bg-gradient-to-tr.from-cyan-500\\/20.to-transparent').forEach(el => {
+        el.style.backgroundImage = `linear-gradient(to top right, ${theme.primary}33, transparent)`;
+        el.style.boxShadow = `0 0 15px ${theme.primary}33`;
+      });
+      
+      // Find all logo SVGs and apply theme styling
+      document.querySelectorAll('svg[viewBox="0 0 1380 1090"]').forEach(svgEl => {
+        // Change the SVG fill color to match the theme
+        svgEl.style.fill = theme.textColor;
+        
+        // Find the parent container to apply the glow
+        const container = svgEl.closest('.w-8.h-8.relative, .w-10.h-10.relative');
+        if (container) {
+          const glowEl = container.querySelector('.absolute.inset-0');
+          if (glowEl) {
+            glowEl.style.backgroundImage = `linear-gradient(to top right, ${theme.primary}33, transparent)`;
+            glowEl.style.boxShadow = `0 0 15px ${theme.primary}33`;
+          }
+        }
+      });
+      
       // Dashboard stat boxes
       document.querySelectorAll('.bg-purple-900\\/20, .bg-black\\/40.backdrop-blur-sm.border.border-purple-900\\/30').forEach(el => {
         el.style.backgroundColor = primaryAlpha;
         el.style.backdropFilter = 'blur(8px)';
         el.style.borderColor = `${theme.borderColor}`;
-      });
-      
-      // Preserve rarity colors in shop/inventory pages
-      document.querySelectorAll('span.text-xs.font-mono.uppercase').forEach(el => {
-        // Check text content to determine rarity
-        const text = el.textContent.trim().toLowerCase();
-        if (text === 'common') {
-          el.style.color = '#9CA3AF';  // gray-300
-        } else if (text === 'uncommon') {
-          el.style.color = '#4ADE80';  // green-400
-        } else if (text === 'rare') {
-          el.style.color = '#60A5FA';  // blue-400
-        } else if (text === 'epic') {
-          el.style.color = '#C084FC';  // purple-400
-        } else if (text === 'legendary') {
-          el.style.color = '#FACC15';  // yellow-400
-        }
       });
       
       // Title gradient backgrounds 
@@ -366,17 +374,12 @@ export default function ThemeApplier() {
         el.style.backgroundColor = theme.cardBg;
       });
       
-      // Gradient buttons - exclude Applied button
-      document.querySelectorAll('button.bg-gradient-to-r:not(.bg-green-500\\/20), a.bg-gradient-to-r:not(.bg-green-500\\/20)').forEach(el => {
-        // Skip if this is the "Applied" button
-        if (el.textContent && el.textContent.trim() === "Applied") {
-          el.style.backgroundColor = "rgba(34, 197, 94, 0.2)";
-          el.style.backgroundImage = "none";
-          el.style.color = "rgb(74, 222, 128)";
-          return;
+      // Gradient buttons
+      document.querySelectorAll('button.bg-gradient-to-r:not([data-applied="true"]), a.bg-gradient-to-r:not([data-applied="true"])').forEach(el => {
+        // Skip if this has a check icon SVG
+        if (!el.querySelector('svg[data-check-icon]')) {
+          el.style.backgroundImage = `linear-gradient(to right, ${theme.primary}, ${theme.secondary})`;
         }
-        
-        el.style.backgroundImage = `linear-gradient(to right, ${theme.primary}, ${theme.secondary})`;
       });
       
       // Card backgrounds
@@ -384,40 +387,181 @@ export default function ThemeApplier() {
         el.style.backgroundColor = theme.cardBg;
       });
       
-      // Specifically target all "Applied" buttons to make them green
+      // *** IMPORTANT FIX: Handle "Apply Theme" button and logo SVG ***
+      const applyThemeButtons = document.querySelectorAll('button, .button, [role="button"]');
+      applyThemeButtons.forEach(button => {
+        // Check for Apply Theme text content
+        const buttonText = button.textContent?.trim();
+        if (buttonText === "Apply Theme") {
+          // Get all SVGs within this button
+          const svgs = button.querySelectorAll('svg');
+          svgs.forEach(svg => {
+            // Don't modify the SVG directly, only style the paths inside
+            svg.style.fill = ""; // Clear any fill that might be set on the SVG itself
+            svg.style.color = theme.textColor;
+            
+            // Apply styles to individual paths more carefully
+            const paths = svg.querySelectorAll('path');
+            paths.forEach(path => {
+              // Check if this is a filled or outline path
+              const currentFill = path.getAttribute('fill');
+              const currentStroke = path.getAttribute('stroke');
+              
+              // If it's meant to be filled, apply the text color as fill
+              if (currentFill && currentFill !== 'none') {
+                path.style.fill = theme.textColor;
+              } else {
+                // Clear any fill that might have been set
+                path.style.fill = "";
+              }
+              
+              // If it's meant to have a stroke, apply the text color as stroke
+              if (currentStroke && currentStroke !== 'none') {
+                path.style.stroke = theme.textColor;
+                // Preserve stroke width
+                const strokeWidth = path.getAttribute('stroke-width');
+                if (strokeWidth) {
+                  path.style.strokeWidth = strokeWidth;
+                }
+              } else {
+                // Clear any stroke that might have been set
+                path.style.stroke = "";
+              }
+            });
+          });
+        }
+      });
+      
+      // Identify all SVGs near "Apply Theme" text
+      const allNodes = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+      let currentNode;
+      while (currentNode = allNodes.nextNode()) {
+        if (currentNode.textContent?.includes('Apply Theme')) {
+          // Found text node containing "Apply Theme"
+          const parentEl = currentNode.parentElement;
+          if (parentEl) {
+            // Check nearby elements for SVGs (siblings, parent siblings, etc.)
+            const nearbyContainer = parentEl.closest('.button, button, [role="button"], .flex, .inline-flex, .inline-block');
+            if (nearbyContainer) {
+              const nearbySvgs = nearbyContainer.querySelectorAll('svg');
+              nearbySvgs.forEach(svg => {
+                // Don't modify the SVG directly, only style the paths inside
+                svg.style.fill = ""; // Clear any fill that might be set on the SVG itself
+                svg.style.color = theme.textColor;
+                
+                // Apply styles to individual paths more carefully
+                const paths = svg.querySelectorAll('path');
+                paths.forEach(path => {
+                  // Check if this is a filled or outline path
+                  const currentFill = path.getAttribute('fill');
+                  const currentStroke = path.getAttribute('stroke');
+                  
+                  // If it's meant to be filled, apply the text color as fill
+                  if (currentFill && currentFill !== 'none') {
+                    path.style.fill = theme.textColor;
+                  } else {
+                    // Clear any fill that might have been set
+                    path.style.fill = "";
+                  }
+                  
+                  // If it's meant to have a stroke, apply the text color as stroke
+                  if (currentStroke && currentStroke !== 'none') {
+                    path.style.stroke = theme.textColor;
+                    // Preserve stroke width
+                    const strokeWidth = path.getAttribute('stroke-width');
+                    if (strokeWidth) {
+                      path.style.strokeWidth = strokeWidth;
+                    }
+                  } else {
+                    // Clear any stroke that might have been set
+                    path.style.stroke = "";
+                  }
+                });
+              });
+            }
+          }
+        }
+      }
+      
+      // Handle specific SVG logos that might need theme colors
+      document.querySelectorAll('.theme-icon, .themed-icon, .theme-logo, .themed-logo').forEach(el => {
+        el.style.color = theme.primary;
+        el.style.fill = theme.primary;
+        
+        // Apply to all child SVGs
+        const svgs = el.querySelectorAll('svg');
+        svgs.forEach(svg => {
+          svg.style.fill = theme.primary;
+          svg.style.color = theme.primary;
+          
+          // Apply to all paths
+          const paths = svg.querySelectorAll('path');
+          paths.forEach(path => {
+            path.style.fill = theme.primary;
+            path.style.stroke = theme.primary;
+          });
+        });
+      });
+      
+      // Applied button styling
       document.querySelectorAll('button').forEach(el => {
-        if (el.textContent && el.textContent.trim() === "Applied") {
+        // Handle Applied buttons specifically
+        const textContent = el.textContent?.trim();
+        if (textContent === "Applied") {
           el.style.backgroundColor = "rgba(34, 197, 94, 0.2)";
           el.style.backgroundImage = "none";
           el.style.color = "rgb(74, 222, 128)";
-        }
-      });
-      
-      // Also find and style any elements that might be the "Applied" button by class names
-      document.querySelectorAll('.bg-green-500\\/20, [class*="Applied"]').forEach(el => {
-        el.style.backgroundColor = "rgba(34, 197, 94, 0.2)";
-        el.style.backgroundImage = "none";
-        el.style.color = "rgb(74, 222, 128)";
-      });
-      
-      // Update box shadows
-      document.querySelectorAll('[class*="shadow-cyan"]').forEach(el => {
-        // Extract existing shadow properties
-        const computedStyle = window.getComputedStyle(el);
-        const shadowValue = computedStyle.boxShadow;
-        
-        // Apply new color but keep shadow dimensions
-        if (shadowValue && shadowValue !== 'none') {
-          // Extract shadow dimensions (assumes format: 0px 0px 0px rgba(0,0,0,0))
-          const shadowParts = shadowValue.match(/(\d+px \d+px \d+px)/g);
+          el.style.borderColor = "rgba(34, 197, 94, 0.3)";
           
-          if (shadowParts && shadowParts.length > 0) {
-            const shadowDimensions = shadowParts[0];
-            // Create new shadow with theme color
-            el.style.boxShadow = `${shadowDimensions} ${theme.primary}33`;
-          }
+          // Add a data attribute to help with CSS targeting
+          el.setAttribute('data-applied', 'true');
+          
+          // Reset any SVG colors within Applied buttons to green
+          const svgs = el.querySelectorAll('svg');
+          svgs.forEach(svg => {
+            svg.style.fill = "rgb(74, 222, 128)";
+            svg.style.color = "rgb(74, 222, 128)";
+            
+            const paths = svg.querySelectorAll('path');
+            paths.forEach(path => {
+              path.style.fill = "rgb(74, 222, 128)";
+              path.style.stroke = "rgb(74, 222, 128)";
+            });
+          });
         }
       });
+      
+      // Find buttons with checkmark SVGs and style them as Applied
+      document.querySelectorAll('button svg').forEach(svg => {
+        const parent = svg.parentElement;
+        const pathElements = svg.querySelectorAll('path');
+        
+        // Check if this SVG contains a checkmark path
+        pathElements.forEach(path => {
+          const d = path.getAttribute('d');
+          
+          // Common checkmark path characteristics
+          if (d && (
+              d.includes('5 13l4 4L19 7') || // Typical checkmark path
+              d.includes('M5 13l4 4L19 7') || 
+              d.includes('check')
+          )) {
+            // This is likely a checkmark SVG
+            svg.setAttribute('data-check-icon', 'true');
+            path.style.stroke = "rgb(74, 222, 128)";
+            
+            // Style the button
+            if (parent && parent.tagName === 'BUTTON') {
+              parent.style.backgroundColor = "rgba(34, 197, 94, 0.2)";
+              parent.style.backgroundImage = "none";
+              parent.style.color = "rgb(74, 222, 128)";
+              parent.style.borderColor = "rgba(34, 197, 94, 0.3)";
+              parent.setAttribute('data-applied', 'true');
+            }
+          }
+        });
+      });
+      
     } catch (err) {
       console.error('Error applying direct styles:', err);
     }
@@ -425,16 +569,128 @@ export default function ThemeApplier() {
     // Store the theme name in localStorage
     localStorage.setItem('momentum-theme', themeName);
     
-          // Set up a handler to ensure Applied buttons stay green if DOM changes
+    // Set up a handler to ensure theme styles are applied to dynamically added elements
     const observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (mutation.type === 'childList') {
-          // Check for new "Applied" buttons and make them green
+          // Look for new Applied buttons
           document.querySelectorAll('button').forEach(el => {
-            if (el.textContent && el.textContent.trim() === "Applied") {
+            const textContent = el.textContent?.trim();
+            if (textContent === "Applied") {
               el.style.backgroundColor = "rgba(34, 197, 94, 0.2)";
               el.style.backgroundImage = "none";
               el.style.color = "rgb(74, 222, 128)";
+              el.style.borderColor = "rgba(34, 197, 94, 0.3)";
+              el.setAttribute('data-applied', 'true');
+              
+              // Reset any SVG colors within Applied buttons to green
+              const svgs = el.querySelectorAll('svg');
+              svgs.forEach(svg => {
+                svg.style.fill = "rgb(74, 222, 128)";
+                svg.style.color = "rgb(74, 222, 128)";
+                
+                const paths = svg.querySelectorAll('path');
+                paths.forEach(path => {
+                  path.style.fill = "rgb(74, 222, 128)";
+                  path.style.stroke = "rgb(74, 222, 128)";
+                });
+              });
+            }
+          });
+          
+          // Find buttons with checkmark SVGs
+          document.querySelectorAll('button svg').forEach(svg => {
+            const parent = svg.parentElement;
+            const pathElements = svg.querySelectorAll('path');
+            
+            pathElements.forEach(path => {
+              const d = path.getAttribute('d');
+              
+              if (d && (
+                  d.includes('5 13l4 4L19 7') || // Typical checkmark path
+                  d.includes('M5 13l4 4L19 7') || 
+                  d.includes('check')
+              )) {
+                // This is likely a checkmark SVG
+                svg.setAttribute('data-check-icon', 'true');
+                path.style.stroke = "rgb(74, 222, 128)";
+                
+                // Style the button
+                if (parent && parent.tagName === 'BUTTON') {
+                  parent.style.backgroundColor = "rgba(34, 197, 94, 0.2)";
+                  parent.style.backgroundImage = "none";
+                  parent.style.color = "rgb(74, 222, 128)";
+                  parent.style.borderColor = "rgba(34, 197, 94, 0.3)";
+                  parent.setAttribute('data-applied', 'true');
+                }
+              }
+            });
+          });
+          
+          // Apply theme to new logo glows that might have been added
+          document.querySelectorAll('.absolute.inset-0.bg-gradient-to-tr.from-cyan-500\\/20.to-transparent').forEach(el => {
+            el.style.backgroundImage = `linear-gradient(to top right, ${theme.primary}33, transparent)`;
+            el.style.boxShadow = `0 0 15px ${theme.primary}33`;
+          });
+          
+          // Check for new "Apply Theme" related elements
+          const applyThemeButtons = document.querySelectorAll('button, .button, [role="button"]');
+          applyThemeButtons.forEach(button => {
+            // Check for Apply Theme text content
+            const buttonText = button.textContent?.trim();
+            if (buttonText === "Apply Theme") {
+              // Get all SVGs within this button
+              const svgs = button.querySelectorAll('svg');
+              svgs.forEach(svg => {
+                // Don't modify the SVG directly, only style the paths inside
+                svg.style.fill = ""; // Clear any fill that might be set on the SVG itself
+                svg.style.color = theme.textColor;
+                
+                // Apply styles to individual paths more carefully
+                const paths = svg.querySelectorAll('path');
+                paths.forEach(path => {
+                  // Check if this is a filled or outline path
+                  const currentFill = path.getAttribute('fill');
+                  const currentStroke = path.getAttribute('stroke');
+                  
+                  // If it's meant to be filled, apply the text color as fill
+                  if (currentFill && currentFill !== 'none') {
+                    path.style.fill = theme.textColor;
+                  } else {
+                    // Clear any fill that might have been set
+                    path.style.fill = "";
+                  }
+                  
+                  // If it's meant to have a stroke, apply the text color as stroke
+                  if (currentStroke && currentStroke !== 'none') {
+                    path.style.stroke = theme.textColor;
+                    // Preserve stroke width
+                    const strokeWidth = path.getAttribute('stroke-width');
+                    if (strokeWidth) {
+                      path.style.strokeWidth = strokeWidth;
+                    }
+                  } else {
+                    // Clear any stroke that might have been set
+                    path.style.stroke = "";
+                  }
+                });
+              });
+            }
+          });
+          
+          // Check for new SVG logos and apply theme
+          document.querySelectorAll('svg[viewBox="0 0 1380 1090"]').forEach(svgEl => {
+            // Change the SVG fill color to match the theme
+            svgEl.style.fill = theme.textColor;
+            
+            // Find the parent container to apply the glow
+            const container = svgEl.closest('.w-8.h-8.relative, .w-10.h-10.relative');
+            if (container) {
+              const glowEl = container.querySelector('.absolute.inset-0');
+              if (glowEl) {
+                glowEl.style.backgroundImage = `linear-gradient(to top right, ${theme.primary}33, transparent)`;
+                glowEl.style.boxShadow = `0 0 15px ${theme.primary}33`;
+              }
             }
           });
           
@@ -443,23 +699,6 @@ export default function ThemeApplier() {
             el.style.backgroundColor = primaryAlpha;
             el.style.backdropFilter = 'blur(8px)';
             el.style.borderColor = `${theme.borderColor}`;
-          });
-          
-          // Keep rarity colors consistent if new ones are added
-          document.querySelectorAll('span.text-xs.font-mono.uppercase').forEach(el => {
-            // Check text content to determine rarity
-            const text = el.textContent.trim().toLowerCase();
-            if (text === 'common') {
-              el.style.color = '#9CA3AF';  // gray-300
-            } else if (text === 'uncommon') {
-              el.style.color = '#4ADE80';  // green-400
-            } else if (text === 'rare') {
-              el.style.color = '#60A5FA';  // blue-400
-            } else if (text === 'epic') {
-              el.style.color = '#C084FC';  // purple-400
-            } else if (text === 'legendary') {
-              el.style.color = '#FACC15';  // yellow-400
-            }
           });
         }
       });
@@ -472,8 +711,79 @@ export default function ThemeApplier() {
     window._themeObserver = observer;
   };
   
+  // Function to reset styling on elements before applying new theme
+  const resetElementStyling = () => {
+    try {
+      // Reset button data attributes for Applied status
+      document.querySelectorAll('[data-applied="true"]').forEach(el => {
+        el.removeAttribute('data-applied');
+      });
+      
+      // Reset SVG checkmarks
+      document.querySelectorAll('svg[data-check-icon]').forEach(svg => {
+        svg.removeAttribute('data-check-icon');
+      });
+      
+      // Reset Apply Theme button SVGs to use default text color
+      document.querySelectorAll('button, .button, [role="button"]').forEach(button => {
+        const buttonText = button.textContent?.trim();
+        if (buttonText === "Apply Theme") {
+          const svgs = button.querySelectorAll('svg');
+          svgs.forEach(svg => {
+            // Set to default text color instead of clearing
+            svg.style.fill = "#FFFFFF";
+            svg.style.color = "#FFFFFF";
+            
+            // Set paths to default text color
+            const paths = svg.querySelectorAll('path');
+            paths.forEach(path => {
+              path.style.fill = "#FFFFFF";
+              path.style.stroke = "#FFFFFF";
+            });
+          });
+        }
+      });
+      
+      // Remove any inline styles from buttons that might interfere with theming
+      document.querySelectorAll('button').forEach(button => {
+        // Keep the actual Applied button's styling
+        if (button.textContent?.trim() === "Applied") {
+          button.style.backgroundColor = "rgba(34, 197, 94, 0.2)";
+          button.style.backgroundImage = "none";
+          button.style.color = "rgb(74, 222, 128)";
+          button.style.borderColor = "rgba(34, 197, 94, 0.3)";
+          button.setAttribute('data-applied', 'true');
+          
+          // Keep SVGs green
+          const svgs = button.querySelectorAll('svg');
+          svgs.forEach(svg => {
+            svg.style.fill = "rgb(74, 222, 128)";
+            svg.style.color = "rgb(74, 222, 128)";
+            
+            const paths = svg.querySelectorAll('path');
+            paths.forEach(path => {
+              path.style.fill = "rgb(74, 222, 128)";
+              path.style.stroke = "rgb(74, 222, 128)";
+            });
+          });
+        } else {
+          // Reset other buttons
+          button.style.backgroundColor = "";
+          button.style.backgroundImage = "";
+          button.style.color = "";
+          button.style.borderColor = "";
+        }
+      });
+    } catch (err) {
+      console.error('Error resetting element styling:', err);
+    }
+  };
+  
   // Function to reset to default theme
   const resetToDefaultTheme = () => {
+    // Reset element styling first
+    resetElementStyling();
+    
     // Remove data-theme attribute
     document.body.removeAttribute('data-theme');
     document.body.classList.remove('theme-transition');
@@ -496,6 +806,56 @@ export default function ThemeApplier() {
       const root = document.documentElement;
       Object.entries(defaultTheme).forEach(([property, value]) => {
         root.style.setProperty(`--theme-${property}`, value);
+      });
+      
+      // Reset logo glow to default
+      document.querySelectorAll('.absolute.inset-0.bg-gradient-to-tr.from-cyan-500\\/20.to-transparent').forEach(el => {
+        el.style.backgroundImage = 'linear-gradient(to top right, rgba(0, 220, 255, 0.2), transparent)';
+        el.style.boxShadow = 'none';
+      });
+      
+      // Reset SVG logo fill
+      document.querySelectorAll('svg[viewBox="0 0 1380 1090"]').forEach(svgEl => {
+        svgEl.style.fill = '#FFFFFF';
+      });
+      
+      // Reset Apply Theme button SVGs to preserve original appearance with default text color
+      document.querySelectorAll('button, .button, [role="button"]').forEach(button => {
+        const buttonText = button.textContent?.trim();
+        if (buttonText === "Apply Theme") {
+          const svgs = button.querySelectorAll('svg');
+          svgs.forEach(svg => {
+            // Clear fill on SVG itself
+            svg.style.fill = "";
+            svg.style.color = defaultTheme.textColor;
+            
+            // Reset individual paths more carefully
+            const paths = svg.querySelectorAll('path');
+            paths.forEach(path => {
+              // Check original attributes to determine styling
+              const defaultFill = path.getAttribute('fill');
+              const defaultStroke = path.getAttribute('stroke');
+              
+              // Apply default styling while preserving the logo structure
+              if (defaultFill && defaultFill !== 'none') {
+                path.style.fill = defaultTheme.textColor;
+              } else {
+                path.style.fill = "";
+              }
+              
+              if (defaultStroke && defaultStroke !== 'none') {
+                path.style.stroke = defaultTheme.textColor;
+                // Preserve stroke width
+                const strokeWidth = path.getAttribute('stroke-width');
+                if (strokeWidth) {
+                  path.style.strokeWidth = strokeWidth;
+                }
+              } else {
+                path.style.stroke = "";
+              }
+            });
+          });
+        }
       });
     }
   };
