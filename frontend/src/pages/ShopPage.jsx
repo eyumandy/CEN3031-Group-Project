@@ -460,170 +460,37 @@ export default function ShopPage() {
     }
   }
 
+  // Direct color styles for rarity, using inline styles as a fallback
+  const getRarityColorStyle = (rarity) => {
+    switch (rarity) {
+      case "common":
+        return "#D1D5DB"; // text-gray-300 equivalent
+      case "uncommon":
+        return "#34D399"; // text-green-400 equivalent
+      case "rare":
+        return "#60A5FA"; // text-blue-400 equivalent  
+      case "epic":
+        return "#A78BFA"; // text-purple-400 equivalent
+      case "legendary":
+        return "#FBBF24"; // text-yellow-400 equivalent
+      default:
+        return "#D1D5DB"; // default gray
+    }
+  }
+
   return (
-    <>
-      {/* Purchase Confirmation Modal */}
-    {selectedItem && (
-      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          transition={{ duration: 0.2 }}
-          className="bg-black/80 border border-white/10 rounded-lg shadow-xl max-w-md w-full"
-        >
-          <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-mono text-white">Confirm Purchase</h2>
-              <button onClick={() => setSelectedItem(null)} className="text-gray-400 hover:text-white transition-colors duration-300">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-6 w-6"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            {purchaseError && (
-              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-md text-red-400 text-sm font-mono">
-                {purchaseError}
-              </div>
-            )}
-
-            <div className="mb-6">
-              <div className="flex items-center justify-center mb-4">
-                {/* Placeholder image with emoji */}
-                <div className="h-32 w-32 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg flex items-center justify-center">
-                  <div className="text-4xl text-gray-600">
-                    {selectedItem.category === "themes" && "🎨"}
-                    {selectedItem.category === "powerups" && "⚡"}
-                    {selectedItem.category === "backgrounds" && "🖼️"}
-                  </div>
-                </div>
-              </div>
-
-              <h3 className="text-lg font-mono text-white text-center mb-1">{selectedItem.name}</h3>
-              <p className="text-center text-xs font-mono uppercase mb-4">
-                <span className={getRarityColor(selectedItem.rarity)}>{selectedItem.rarity}</span>
-              </p>
-              <p className="text-gray-400 text-sm text-center mb-4 font-mono">{selectedItem.description}</p>
-
-              <div className="flex justify-between items-center bg-black/40 border border-white/10 rounded-lg p-4 mb-4">
-                <div>
-                  <p className="text-sm font-mono text-gray-400">Price</p>
-                  <div className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-yellow-500 mr-1.5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="font-mono text-white font-medium">{selectedItem.price}</span>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm font-mono text-gray-400">Your Balance</p>
-                  <div className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-yellow-500 mr-1.5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className="font-mono text-white font-medium">{coins}</span>
-                  </div>
-                </div>
-                <div>
-                  <p className="text-sm font-mono text-gray-400">Remaining</p>
-                  <div className="flex items-center">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5 text-yellow-500 mr-1.5"
-                      viewBox="0 0 20 20"
-                      fill="currentColor"
-                    >
-                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
-                      <path
-                        fillRule="evenodd"
-                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
-                        clipRule="evenodd"
-                      />
-                    </svg>
-                    <span className={`font-mono font-medium ${coins - selectedItem.price < 0 ? "text-red-400" : "text-white"}`}>
-                      {coins - selectedItem.price}
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {coins < selectedItem.price && (
-                <div className="bg-red-500/20 text-red-400 p-3 rounded-md mb-4 text-sm font-mono">
-                  You don't have enough coins to purchase this item. Complete more habits to earn coins!
-                </div>
-              )}
-            </div>
-
-            <div className="flex justify-end space-x-3">
-              <button
-                type="button"
-                onClick={() => setSelectedItem(null)}
-                className="px-4 py-2 bg-black/50 border border-gray-700 rounded-md text-gray-300 hover:text-white transition-colors duration-300 text-sm font-mono"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handlePurchase}
-                disabled={isPurchasing || coins < selectedItem.price}
-                className={`px-4 py-2 rounded-md transition-all duration-300 text-sm font-mono ${
-                  coins >= selectedItem.price
-                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40"
-                    : "bg-gray-700/50 text-gray-500 cursor-not-allowed"
-                }`}
-              >
-                {isPurchasing ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Processing...
-                  </>
-                ) : (
-                  "Confirm Purchase"
-                )}
-              </button>
-            </div>
-          </div>
-        </motion.div>
-      </div>
-    )}
-      <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-black text-white">
       {/* Header */}
       <header className="bg-gradient-to-b from-black/80 to-black/30 backdrop-blur-md border-b border-white/5 px-6 py-4 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div className="flex items-center space-x-2">
             <Link href="/dashboard">
               <div className="w-8 h-8 relative">
-                <svg viewBox="0 0 1380 1090" className="w-full h-full fill-white">
+                <svg
+                  viewBox="0 0 1380 1090"
+                  className="w-full h-full fill-white"
+                  style={{ transform: 'scaleY(-1)' }}
+                >
                   <path d={MOMENTUM_LOGO_PATH} />
                 </svg>
                 <div className="absolute inset-0 bg-gradient-to-tr from-cyan-500/20 to-transparent blur-sm rounded-full"></div>
@@ -696,7 +563,7 @@ export default function ShopPage() {
               </div>
 
               <NotificationDropdown />
-              <ProfileDropdown userName="John Smith" userEmail="user@momentum.app" userInitials="JS" />
+              <ProfileDropdown />
             </div>
           </div>
         </div>
@@ -771,28 +638,30 @@ export default function ShopPage() {
             </button>
           </div>
 
-          <div className="relative w-full md:w-64">
+          <div className="relative flex items-center w-full md:w-64">
             <input
               type="text"
               placeholder="Search shop..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 bg-black/40 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 text-white font-mono text-sm"
+              className="w-full py-2 pr-10 pl-4 bg-black/40 border border-white/10 rounded-md focus:outline-none focus:ring-2 focus:ring-cyan-500/50 focus:border-cyan-500 text-white font-mono text-sm"
             />
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5 absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-400"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                />
+              </svg>
+            </div>
           </div>
         </motion.div>
 
@@ -825,7 +694,13 @@ export default function ShopPage() {
                       <div className="p-4">
                         <div className="flex justify-between items-start mb-2">
                           <h3 className="text-lg font-mono text-white">{item.name}</h3>
-                          <span className={`text-xs font-mono uppercase ${getRarityColor(item.rarity)}`}>{item.rarity}</span>
+                          {/* Use inline style as a fallback for the rarity text color */}
+                          <span 
+                            className={`text-xs font-mono uppercase ${getRarityColor(item.rarity)}`}
+                            style={{ color: getRarityColorStyle(item.rarity) }}
+                          >
+                            {item.rarity}
+                          </span>
                         </div>
 
                         <div className="flex items-center mb-2">
@@ -889,6 +764,7 @@ export default function ShopPage() {
                               <path
                               fillRule="evenodd"
                               d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
+                              clipRule="evenodd"
                             />
                           </svg>
                           <span className="font-mono text-white font-medium">{item.price}</span>
@@ -1015,7 +891,167 @@ export default function ShopPage() {
         </AnimatePresence>
       </div>
     </main>
+
+    {/* Purchase Confirmation Modal */}
+    {selectedItem && (
+      <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 px-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.9 }}
+          transition={{ duration: 0.2 }}
+          className="bg-black/80 border border-white/10 rounded-lg shadow-xl max-w-md w-full"
+        >
+          <div className="p-6">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-mono text-white">Confirm Purchase</h2>
+              <button onClick={() => setSelectedItem(null)} className="text-gray-400 hover:text-white transition-colors duration-300">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            {purchaseError && (
+              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-md text-red-400 text-sm font-mono">
+                {purchaseError}
+              </div>
+            )}
+
+            <div className="mb-6">
+              <div className="flex items-center justify-center mb-4">
+                {/* Placeholder image with emoji */}
+                <div className="h-32 w-32 bg-gradient-to-br from-gray-800 to-gray-900 rounded-lg flex items-center justify-center">
+                  <div className="text-4xl text-gray-600">
+                    {selectedItem.category === "themes" && "🎨"}
+                    {selectedItem.category === "powerups" && "⚡"}
+                    {selectedItem.category === "backgrounds" && "🖼️"}
+                  </div>
+                </div>
+              </div>
+
+              <h3 className="text-lg font-mono text-white text-center mb-1">{selectedItem.name}</h3>
+              <p className="text-center text-xs font-mono uppercase mb-4">
+                {/* Use inline style for consistent color display */}
+                <span 
+                  className={`${getRarityColor(selectedItem.rarity)}`}
+                  style={{ color: getRarityColorStyle(selectedItem.rarity) }}
+                >
+                  {selectedItem.rarity}
+                </span>
+              </p>
+              <p className="text-gray-400 text-sm text-center mb-4 font-mono">{selectedItem.description}</p>
+
+              <div className="flex justify-between items-center bg-black/40 border border-white/10 rounded-lg p-4 mb-4">
+                <div>
+                  <p className="text-sm font-mono text-gray-400">Price</p>
+                  <div className="flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-yellow-500 mr-1.5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="font-mono text-white font-medium">{selectedItem.price}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-mono text-gray-400">Your Balance</p>
+                  <div className="flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-yellow-500 mr-1.5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className="font-mono text-white font-medium">{coins}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-sm font-mono text-gray-400">Remaining</p>
+                  <div className="flex items-center">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="h-5 w-5 text-yellow-500 mr-1.5"
+                      viewBox="0 0 20 20"
+                      fill="currentColor"
+                    >
+                      <path d="M8.433 7.418c.155-.103.346-.196.567-.267v1.698a2.305 2.305 0 01-.567-.267C8.07 8.34 8 8.114 8 8c0-.114.07-.34.433-.582zM11 12.849v-1.698c.22.071.412.164.567.267.364.243.433.468.433.582 0 .114-.07.34-.433.582a2.305 2.305 0 01-.567.267z" />
+                      <path
+                        fillRule="evenodd"
+                        d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v.092a4.535 4.535 0 00-1.676.662C6.602 6.234 6 7.009 6 8c0 .99.602 1.765 1.324 2.246.48.32 1.054.545 1.676.662v1.941c-.391-.127-.68-.317-.843-.504a1 1 0 10-1.51 1.31c.562.649 1.413 1.076 2.353 1.253V15a1 1 0 102 0v-.092a4.535 4.535 0 001.676-.662C13.398 13.766 14 12.991 14 12c0-.99-.602-1.765-1.324-2.246A4.535 4.535 0 0011 9.092V7.151c.391.127.68.317.843.504a1 1 0 101.511-1.31c-.563-.649-1.413-1.076-2.354-1.253V5z"
+                        clipRule="evenodd"
+                      />
+                    </svg>
+                    <span className={`font-mono font-medium ${coins - selectedItem.price < 0 ? "text-red-400" : "text-white"}`}>
+                      {coins - selectedItem.price}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {coins < selectedItem.price && (
+                <div className="bg-red-500/20 text-red-400 p-3 rounded-md mb-4 text-sm font-mono">
+                  You don't have enough coins to purchase this item. Complete more habits to earn coins!
+                </div>
+              )}
+            </div>
+
+            <div className="flex justify-end space-x-3">
+              <button
+                type="button"
+                onClick={() => setSelectedItem(null)}
+                className="px-4 py-2 bg-black/50 border border-gray-700 rounded-md text-gray-300 hover:text-white transition-colors duration-300 text-sm font-mono"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handlePurchase}
+                disabled={isPurchasing || coins < selectedItem.price}
+                className={`px-4 py-2 rounded-md transition-all duration-300 text-sm font-mono ${
+                  coins >= selectedItem.price
+                    ? "bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/40"
+                    : "bg-gray-700/50 text-gray-500 cursor-not-allowed"
+                }`}
+              >
+                {isPurchasing ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  "Confirm Purchase"
+                )}
+              </button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+    )}
   </div>
-  </>
 )
 }

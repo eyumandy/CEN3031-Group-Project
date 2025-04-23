@@ -78,6 +78,12 @@ export default function ThemeApplier() {
       document.head.appendChild(styleEl);
     }
     
+    // Calculate an alpha version of primary and secondary for overlays
+    const primaryRGB = hexToRGB(theme.primary);
+    const secondaryRGB = hexToRGB(theme.secondary);
+    const primaryAlpha = primaryRGB ? `rgba(${primaryRGB.r}, ${primaryRGB.g}, ${primaryRGB.b}, 0.2)` : 'rgba(0, 0, 0, 0.4)';
+    const secondaryAlpha = secondaryRGB ? `rgba(${secondaryRGB.r}, ${secondaryRGB.g}, ${secondaryRGB.b}, 0.1)` : 'rgba(0, 0, 0, 0.2)';
+    
     // Set style content all at once to minimize repaints
     styleEl.textContent = `
       /* Theme: ${themeName} applied at ${new Date().toISOString()} */
@@ -90,11 +96,29 @@ export default function ThemeApplier() {
         --theme-borderColor: ${theme.borderColor} !important;
         --theme-textColor: ${theme.textColor} !important;
         --theme-textMuted: ${theme.textMuted} !important;
+        --theme-primary-alpha: ${primaryAlpha} !important;
+        --theme-secondary-alpha: ${secondaryAlpha} !important;
       }
       
       /* Background */
       body { 
         background-color: ${theme.background} !important; 
+      }
+      
+      /* Dashboard Stat Boxes - IMPORTANT FIX */
+      .bg-purple-900\\/20,
+      .bg-black\\/40.backdrop-blur-sm.border.border-purple-900\\/30,
+      div[class*="bg-purple-900"],
+      .bg-black\\/40.backdrop-blur-sm.border.border-white\\/10 {
+        background-color: ${primaryAlpha} !important;
+        backdrop-filter: blur(8px) !important;
+        border-color: ${theme.borderColor} !important;
+      }
+      
+      /* Dashboard Stat Box Borders */
+      .border-purple-900\\/30,
+      div[class*="border-purple-900"] {
+        border-color: ${primaryAlpha} !important;
       }
       
       /* Basic text colors - apply to ALL text elements */
@@ -107,7 +131,9 @@ export default function ThemeApplier() {
       h1 span.ml-2.text-transparent,
       h1 span[class*="text-transparent"],
       span.ml-2.text-transparent.bg-clip-text,
-      span.ml-2.text-transparent.bg-clip-text.bg-gradient-to-r.from-cyan-400.to-blue-500 { 
+      span.ml-2.text-transparent.bg-clip-text.bg-gradient-to-r.from-cyan-400.to-blue-500,
+      /* Dashboard Today text */
+      h1 span.ml-2.text-transparent.bg-clip-text.bg-gradient-to-r.from-fuchsia-400.to-fuchsia-500 { 
         color: ${theme.primary} !important;
         -webkit-text-fill-color: ${theme.primary} !important;
       }
@@ -115,7 +141,9 @@ export default function ThemeApplier() {
       /* Handle bg-clip-text elements specifically */
       .text-transparent.bg-clip-text.bg-gradient-to-r,
       .text-transparent.bg-clip-text.bg-gradient-to-r.from-cyan-400.to-blue-500,
-      h1 span.ml-2.text-transparent.bg-clip-text.bg-gradient-to-r.from-cyan-400.to-blue-500 {
+      h1 span.ml-2.text-transparent.bg-clip-text.bg-gradient-to-r.from-cyan-400.to-blue-500,
+      /* Dashboard Today text gradient */
+      h1 span.ml-2.text-transparent.bg-clip-text.bg-gradient-to-r.from-fuchsia-400.to-fuchsia-500 {
         background-image: linear-gradient(to right, ${theme.primary}, ${theme.secondary}) !important;
         -webkit-background-clip: text !important;
         color: transparent !important;
@@ -132,25 +160,47 @@ export default function ThemeApplier() {
         color: ${theme.textMuted} !important; 
       }
       
+      /* Preserve rarity colors */
+      .text-green-400, span.text-green-400, span.text-xs.font-mono.uppercase.text-green-400,
+      .text-blue-400, span.text-blue-400, span.text-xs.font-mono.uppercase.text-blue-400,
+      .text-purple-400, span.text-purple-400, span.text-xs.font-mono.uppercase.text-purple-400,
+      .text-yellow-400, span.text-yellow-400, span.text-xs.font-mono.uppercase.text-yellow-400,
+      span[class*="text-green-"], span[class*="text-blue-"], 
+      span[class*="text-purple-"], span[class*="text-yellow-"] {
+        /* Don't override these colors with !important */
+        color: inherit;
+      }
+      
+      /* Rarity color specifics for shop and inventory */
+      span.text-xs.font-mono.uppercase.text-gray-300 { color: #9CA3AF !important; } /* common */
+      span.text-xs.font-mono.uppercase.text-green-400 { color: #4ADE80 !important; } /* uncommon */
+      span.text-xs.font-mono.uppercase.text-blue-400 { color: #60A5FA !important; } /* rare */
+      span.text-xs.font-mono.uppercase.text-purple-400 { color: #C084FC !important; } /* epic */
+      span.text-xs.font-mono.uppercase.text-yellow-400 { color: #FACC15 !important; } /* legendary */
+      
       /* Standard text */
       .text-white,
       .text-lg,
       .text-sm,
       .text-base,
       h1, h2, h3, h4, h5, h6,
-      p, div, span:not([class*="text-gray"]):not([class*="text-cyan"]):not([class*="text-yellow"]):not([class*="text-green"]),
+      p, div, span:not([class*="text-gray"]):not([class*="text-cyan"]):not([class*="text-yellow"]):not([class*="text-green"]):not([class*="text-blue"]):not([class*="text-purple"]),
       button:not([class*="from-cyan"]) { 
         color: ${theme.textColor} !important; 
       }
       
       /* Gradient colors for backgrounds */
       .from-cyan-500,
-      .from-cyan-400 { 
+      .from-cyan-400,
+      .from-fuchsia-500,
+      .from-fuchsia-400 { 
         --tw-gradient-from: ${theme.primary} !important; 
       }
       
       .to-blue-600,
-      .to-blue-500 { 
+      .to-blue-500,
+      .to-fuchsia-400,
+      .to-fuchsia-500 { 
         --tw-gradient-to: ${theme.secondary} !important; 
       }
       
@@ -171,9 +221,19 @@ export default function ThemeApplier() {
       /* Button gradients - except for "Applied" button */
       .bg-gradient-to-r.from-cyan-500.to-blue-600:not(.bg-green-500\\/20):not([class*="Applied"]),
       .bg-gradient-to-r.from-cyan-400.to-blue-500:not(.bg-green-500\\/20):not([class*="Applied"]),
+      /* Update to also catch the dashboard button gradients */
+      .bg-gradient-to-r.from-fuchsia-500.to-fuchsia-400:not(.bg-green-500\\/20):not([class*="Applied"]),
       button.bg-gradient-to-r:not(.bg-green-500\\/20):not([class*="Applied"]),
       a.bg-gradient-to-r:not(.bg-green-500\\/20):not([class*="Applied"]) {
         background-image: linear-gradient(to right, ${theme.primary}, ${theme.secondary}) !important;
+      }
+      
+      /* Habit completion button */
+      .bg-green-600.text-white.hover\\:bg-green-500 {
+        background-color: ${theme.primary} !important;
+      }
+      .bg-green-600.text-white.hover\\:bg-green-500:hover {
+        background-color: ${theme.secondary} !important;
       }
       
       /* Shadow effects */
@@ -191,11 +251,13 @@ export default function ThemeApplier() {
         color: ${theme.primary} !important;
       }
       
-      .hover\\:from-cyan-400:hover {
+      .hover\\:from-cyan-400:hover,
+      .hover\\:from-fuchsia-400:hover {
         --tw-gradient-from: ${theme.primary} !important;
       }
       
-      .hover\\:to-blue-500:hover {
+      .hover\\:to-blue-500:hover,
+      .hover\\:to-fuchsia-300:hover {
         --tw-gradient-to: ${theme.secondary} !important;
       }
       
@@ -219,6 +281,17 @@ export default function ThemeApplier() {
         border-color: ${theme.primary} !important;
       }
       
+      /* Dashboard filter buttons - active state */
+      button.px-4.py-2.rounded-md.text-sm.font-mono.transition-all.duration-300.bg-gradient-to-r.from-fuchsia-500.to-fuchsia-400.text-white {
+        background-image: linear-gradient(to right, ${theme.primary}, ${theme.secondary}) !important;
+      }
+      
+      /* Dashboard filter buttons - inactive state */
+      button.px-4.py-2.rounded-md.text-sm.font-mono.transition-all.duration-300.bg-black\\/40.border.border-purple-900\\/60 {
+        border-color: ${theme.borderColor} !important;
+        background-color: ${theme.cardBg} !important;
+      }
+      
       /* SPECIAL CASE: Always make "Applied" button green */
       .bg-green-500\\/20,
       button.bg-green-500\\/20,
@@ -240,8 +313,32 @@ export default function ThemeApplier() {
     
     // Apply direct styles to specific elements that might be hard to target with CSS
     try {
+      // Dashboard stat boxes
+      document.querySelectorAll('.bg-purple-900\\/20, .bg-black\\/40.backdrop-blur-sm.border.border-purple-900\\/30').forEach(el => {
+        el.style.backgroundColor = primaryAlpha;
+        el.style.backdropFilter = 'blur(8px)';
+        el.style.borderColor = `${theme.borderColor}`;
+      });
+      
+      // Preserve rarity colors in shop/inventory pages
+      document.querySelectorAll('span.text-xs.font-mono.uppercase').forEach(el => {
+        // Check text content to determine rarity
+        const text = el.textContent.trim().toLowerCase();
+        if (text === 'common') {
+          el.style.color = '#9CA3AF';  // gray-300
+        } else if (text === 'uncommon') {
+          el.style.color = '#4ADE80';  // green-400
+        } else if (text === 'rare') {
+          el.style.color = '#60A5FA';  // blue-400
+        } else if (text === 'epic') {
+          el.style.color = '#C084FC';  // purple-400
+        } else if (text === 'legendary') {
+          el.style.color = '#FACC15';  // yellow-400
+        }
+      });
+      
       // Title gradient backgrounds 
-      document.querySelectorAll('.text-transparent.bg-clip-text.bg-gradient-to-r, h1 span.ml-2.text-transparent').forEach(el => {
+      document.querySelectorAll('.text-transparent.bg-clip-text.bg-gradient-to-r, h1 span.ml-2.text-transparent, h1 span.ml-2.text-transparent.bg-clip-text.bg-gradient-to-r.from-fuchsia-400.to-fuchsia-500').forEach(el => {
         el.style.backgroundImage = `linear-gradient(to right, ${theme.primary}, ${theme.secondary})`;
         el.style.webkitBackgroundClip = 'text';
         el.style.backgroundClip = 'text';
@@ -256,6 +353,17 @@ export default function ThemeApplier() {
         if (underline) {
           underline.style.backgroundColor = theme.primary;
         }
+      });
+      
+      // Active filter buttons in dashboard
+      document.querySelectorAll('button.px-4.py-2.rounded-md.text-sm.font-mono.transition-all.duration-300.bg-gradient-to-r.from-fuchsia-500.to-fuchsia-400.text-white').forEach(el => {
+        el.style.backgroundImage = `linear-gradient(to right, ${theme.primary}, ${theme.secondary})`;
+      });
+      
+      // Inactive filter buttons in dashboard
+      document.querySelectorAll('button.px-4.py-2.rounded-md.text-sm.font-mono.transition-all.duration-300.bg-black\\/40.border.border-purple-900\\/60').forEach(el => {
+        el.style.borderColor = theme.borderColor;
+        el.style.backgroundColor = theme.cardBg;
       });
       
       // Gradient buttons - exclude Applied button
@@ -317,7 +425,7 @@ export default function ThemeApplier() {
     // Store the theme name in localStorage
     localStorage.setItem('momentum-theme', themeName);
     
-    // Set up a handler to ensure Applied buttons stay green if DOM changes
+          // Set up a handler to ensure Applied buttons stay green if DOM changes
     const observer = new MutationObserver(function(mutations) {
       mutations.forEach(function(mutation) {
         if (mutation.type === 'childList') {
@@ -327,6 +435,30 @@ export default function ThemeApplier() {
               el.style.backgroundColor = "rgba(34, 197, 94, 0.2)";
               el.style.backgroundImage = "none";
               el.style.color = "rgb(74, 222, 128)";
+            }
+          });
+          
+          // Also update dashboard stat boxes if new ones are added
+          document.querySelectorAll('.bg-purple-900\\/20, .bg-black\\/40.backdrop-blur-sm.border.border-purple-900\\/30').forEach(el => {
+            el.style.backgroundColor = primaryAlpha;
+            el.style.backdropFilter = 'blur(8px)';
+            el.style.borderColor = `${theme.borderColor}`;
+          });
+          
+          // Keep rarity colors consistent if new ones are added
+          document.querySelectorAll('span.text-xs.font-mono.uppercase').forEach(el => {
+            // Check text content to determine rarity
+            const text = el.textContent.trim().toLowerCase();
+            if (text === 'common') {
+              el.style.color = '#9CA3AF';  // gray-300
+            } else if (text === 'uncommon') {
+              el.style.color = '#4ADE80';  // green-400
+            } else if (text === 'rare') {
+              el.style.color = '#60A5FA';  // blue-400
+            } else if (text === 'epic') {
+              el.style.color = '#C084FC';  // purple-400
+            } else if (text === 'legendary') {
+              el.style.color = '#FACC15';  // yellow-400
             }
           });
         }
@@ -366,6 +498,24 @@ export default function ThemeApplier() {
         root.style.setProperty(`--theme-${property}`, value);
       });
     }
+  };
+  
+  // Helper function to convert hex to RGB
+  const hexToRGB = (hex) => {
+    if (!hex) return null;
+    
+    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+    const shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    const fullHex = hex.replace(shorthandRegex, (m, r, g, b) => r + r + g + g + b + b);
+    
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(fullHex);
+    return result
+      ? {
+          r: parseInt(result[1], 16),
+          g: parseInt(result[2], 16),
+          b: parseInt(result[3], 16),
+        }
+      : null;
   };
   
   return null; // This component doesn't render anything visible

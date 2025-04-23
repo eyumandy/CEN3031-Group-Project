@@ -182,9 +182,6 @@ export default function DashboardPage() {
           
           // Update coins with reward
           setCoins(data.currentCoins)
-
-          // Update Achievements
-          fetchAchievements()
         } else {
           console.error("Failed to complete habit")
         }
@@ -219,7 +216,7 @@ export default function DashboardPage() {
       console.error("Error deleting habit:", error)
     }
   }
-  
+
   // Filter habits based on active filter and search query
   const filteredHabits = habits.filter((habit) => {
     const matchesFilter = activeFilter === "all" || habit.frequency === activeFilter
@@ -635,20 +632,20 @@ export default function DashboardPage() {
                           <div className="flex items-center">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4 text-orange-500 mr-1"
+                              className="h-3.5 w-3.5 text-orange-400 mr-1"
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"
                             >
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
                             </svg>
-                            <span className="text-sm font-mono text-gray-300">{habit.streak || 0} streak</span>
+                            <span className="text-xs font-mono text-gray-300">{habit.streak || 0} streak</span>
                           </div>
-                          <div className="h-4 w-px bg-gray-700"></div>
+                          <div className="h-4 w-px bg-purple-800/50"></div>
                           <div className="flex items-center">
                             <svg
                               xmlns="http://www.w3.org/2000/svg"
-                              className="h-4 w-4 text-blue-500 mr-1"
+                              className="h-3.5 w-3.5 text-fuchsia-400 mr-1"
                               fill="none"
                               viewBox="0 0 24 24"
                               stroke="currentColor"
@@ -660,7 +657,7 @@ export default function DashboardPage() {
                                 d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
                               />
                             </svg>
-                            <span className="text-sm font-mono text-gray-300">{habit.totalCompletions || 0} total</span>
+                            <span className="text-xs font-mono text-gray-300">{habit.totalCompletions || 0} total</span>
                           </div>
                         </div>
 
